@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>NitroQuest - Hub</title>
+    <style>
+        :root {
+            --glass-blue: rgba(0, 162, 255, 0.2);
+            --neon-blue: #00a2ff;
+            --dark-gray: #1a1a1a;
+        }
+        body {
+            background-color: #0a0a0a;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .main-card {
+            background: var(--glass-blue);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--neon-blue);
+            padding: 40px;
+            border-radius: 20px;
+            width: 400px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(0, 162, 255, 0.1);
+        }
+        h1 { color: var(--neon-blue); letter-spacing: 3px; margin-bottom: 25px; }
+        .input-area { margin-bottom: 25px; }
+        input {
+            width: 80%;
+            padding: 12px;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: white;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: var(--neon-blue);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            box-shadow: 0 0 20px var(--neon-blue);
+            transform: translateY(-2px);
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            font-size: 0.8rem;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-card">
+        <h1>NITRO QUEST</h1>
+        <p>أدخل رمز الغرفة المكون من 9 أرقام</p>
+        
+        <div class="input-area">
+            <input type="text" id="roomCode" placeholder="XXX-XXX-XXX" maxlength="9">
+        </div>
+
+        <button onclick="checkAccess()">دخول السباق أونلاين</button>
+
+        <div class="stats">
+            <div>المستوى الحالي: 17</div>
+            <div>نوع المحرك: QS Electric</div>
+        </div>
+    </div>
+
+    <script>
+        function checkAccess() {
+            const code = document.getElementById('roomCode').value;
+            if(code.length === 9) {
+                alert('جاري الاتصال بسيرفر اللعبة... الرمز مقبول');
+            } else {
+                alert('خطأ: الرمز يجب أن يتكون من 9 أرقام');
+            }
+        }
+    </script>
+</body>
+</html>
