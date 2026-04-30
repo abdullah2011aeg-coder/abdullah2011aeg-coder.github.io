@@ -2,96 +2,204 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>NitroQuest - Hub</title>
+    <title>NitroQuest Pro Edition - 2D Pixel Racer</title>
     <style>
-        :root {
-            --glass-blue: rgba(0, 162, 255, 0.2);
-            --neon-blue: #00a2ff;
-            --dark-gray: #1a1a1a;
-        }
-        body {
-            background-color: #0a0a0a;
-            color: #e0e0e0;
-            font-family: 'Segoe UI', sans-serif;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .main-card {
-            background: var(--glass-blue);
-            backdrop-filter: blur(15px);
-            border: 1px solid var(--neon-blue);
-            padding: 40px;
-            border-radius: 20px;
-            width: 400px;
-            text-align: center;
-            box-shadow: 0 0 30px rgba(0, 162, 255, 0.1);
-        }
-        h1 { color: var(--neon-blue); letter-spacing: 3px; margin-bottom: 25px; }
-        .input-area { margin-bottom: 25px; }
-        input {
-            width: 80%;
-            padding: 12px;
-            background: #111;
-            border: 1px solid #333;
-            border-radius: 8px;
-            color: white;
-            text-align: center;
-            font-size: 1.1rem;
-        }
-        button {
-            width: 100%;
-            padding: 15px;
-            background: var(--neon-blue);
-            border: none;
-            border-radius: 10px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        button:hover {
-            box-shadow: 0 0 20px var(--neon-blue);
-            transform: translateY(-2px);
-        }
-        .stats {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 20px;
-            font-size: 0.8rem;
-            color: #888;
-        }
+        :root { --neon: #00a2ff; --bg: #050505; --glass: rgba(0, 162, 255, 0.1); }
+        body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; margin: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+        #game-container { position: relative; border: 3px solid var(--neon); box-shadow: 0 0 25px var(--neon); border-radius: 15px; background: #111; overflow: hidden; }
+        canvas { display: block; image-rendering: pixelated; }
+        .hud { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-around; pointer-events: none; }
+        .hud-item { background: var(--glass); padding: 5px 15px; border-radius: 5px; border: 1px solid var(--neon); backdrop-filter: blur(5px); }
+        #overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; }
+        input { background: #000; border: 1px solid var(--neon); color: var(--neon); padding: 10px; text-align: center; font-size: 1.2rem; margin-bottom: 10px; border-radius: 5px; }
+        button { background: var(--neon); color: #000; border: none; padding: 12px 30px; font-weight: bold; cursor: pointer; border-radius: 5px; text-transform: uppercase; }
+        .error-log { position: fixed; bottom: 10px; left: 10px; color: #ff0055; font-size: 0.7rem; max-width: 200px; text-align: left; }
     </style>
 </head>
 <body>
 
-    <div class="main-card">
-        <h1>NITRO QUEST</h1>
-        <p>أدخل رمز الغرفة المكون من 9 أرقام</p>
-        
-        <div class="input-area">
-            <input type="text" id="roomCode" placeholder="XXX-XXX-XXX" maxlength="9">
-        </div>
-
-        <button onclick="checkAccess()">دخول السباق أونلاين</button>
-
-        <div class="stats">
-            <div>المستوى الحالي: 17</div>
-            <div>نوع المحرك: QS Electric</div>
-        </div>
+<div id="game-container">
+    <div class="hud">
+        <div class="hud-item">السرعة: <span id="speed-val">0</span> KM/H</div>
+        <div class="hud-item">المسافة: <span id="dist-val">0</span> M</div>
+    </div>
+    
+    <div id="overlay">
+        <h1 style="color:var(--neon); text-shadow: 0 0 10px var(--neon);">NITRO QUEST PRO</h1>
+        <p>أدخل رمز الغرفة للبدء (9 أرقام)</p>
+        <input type="text" id="roomCode" placeholder="XXX-XXX-XXX" maxlength="11">
+        <button onclick="Engine.init()">بدء المحرك</button>
     </div>
 
-    <script>
-        function checkAccess() {
-            const code = document.getElementById('roomCode').value;
-            if(code.length === 9) {
-                alert('جاري الاتصال بسيرفر اللعبة... الرمز مقبول');
-            } else {
-                alert('خطأ: الرمز يجب أن يتكون من 9 أرقام');
-            }
+    <canvas id="raceCanvas" width="450" height="700"></canvas>
+</div>
+
+<div class="error-log" id="debug">System Status: Stable...</div>
+
+<script>
+/** 
+ * NITRO QUEST ENGINE v1.0.4
+ * Core: Custom Pixel Rendering & Error Handling
+ * Domain: abdullah2011aeg-coder.github.io
+ */
+
+const Engine = {
+    canvas: null, ctx: null,
+    active: false,
+    entities: [],
+    player: null,
+    frame: 0,
+    stats: { score: 0, speed: 5, lastTime: 0 },
+    config: { roadWidth: 350, laneLines: 5, pixelScale: 2 },
+
+    // --- نظام معالجة الأخطاء (Error Handlers) ---
+    logger: function(msg, type = 'info') {
+        const d = document.getElementById('debug');
+        d.innerText = `[${type.toUpperCase()}] ${msg}`;
+        if(type === 'error') console.error(msg);
+    },
+
+    // --- المحرك الرسومي ---
+    init: function() {
+        const code = document.getElementById('roomCode').value;
+        if(code.length < 9) {
+            this.logger("خطأ: الرمز غير صالح", "error");
+            return;
         }
-    </script>
+
+        document.getElementById('overlay').style.display = 'none';
+        this.canvas = document.getElementById('raceCanvas');
+        this.ctx = this.canvas.getContext('2d', { alpha: false });
+        this.active = true;
+        
+        this.player = {
+            x: this.canvas.width / 2 - 25,
+            y: this.canvas.height - 120,
+            w: 44, h: 84,
+            targetX: this.canvas.width / 2 - 25,
+            color: '#00a2ff'
+        };
+
+        this.logger("تم تشغيل المحرك بنجاح", "info");
+        this.gameLoop(0);
+    },
+
+    drawRoad: function() {
+        const ctx = this.ctx;
+        ctx.fillStyle = '#1a1a1a'; // لون الإسفلت
+        ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // رسم حواف الطريق (ألوان زاهية)
+        ctx.fillStyle = '#ff0055';
+        ctx.fillRect(0, 0, 15, this.canvas.height);
+        ctx.fillRect(this.canvas.width - 15, 0, 15, this.canvas.height);
+
+        // خطوط الطريق المتحركة
+        ctx.strokeStyle = '#fff';
+        ctx.setLineDash([40, 40]);
+        ctx.lineDashOffset = -this.frame * this.stats.speed;
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(this.canvas.width / 2, 0);
+        ctx.lineTo(this.canvas.width / 2, this.canvas.height);
+        ctx.stroke();
+    },
+
+    drawPixelCar: function(x, y, color, isPlayer = false) {
+        const ctx = this.ctx;
+        const p = 4; // Pixel unit size
+        
+        ctx.fillStyle = color;
+        ctx.fillRect(x, y, 44, 84); // الجسم الأساسي
+        
+        // الإطارات
+        ctx.fillStyle = '#000';
+        ctx.fillRect(x-4, y+8, 8, 20); ctx.fillRect(x+40, y+8, 8, 20);
+        ctx.fillRect(x-4, y+56, 8, 20); ctx.fillRect(x+40, y+56, 8, 20);
+
+        // الزجاج
+        ctx.fillStyle = isPlayer ? '#fff' : '#444';
+        ctx.fillRect(x+6, y+16, 32, 24);
+        
+        // الأضواء
+        ctx.fillStyle = isPlayer ? '#00ffcc' : '#ff3300';
+        ctx.fillRect(x+4, y+4, 8, 4); ctx.fillRect(x+32, y+4, 8, 4);
+    },
+
+    spawnObstacle: function() {
+        if(this.frame % 60 === 0) {
+            const lanes = [60, 160, 260, 340];
+            const laneX = lanes[Math.floor(Math.random() * lanes.length)];
+            const colors = ['#ffcc00', '#00ffcc', '#ff00ff', '#ffffff'];
+            this.entities.push({
+                x: laneX, y: -100,
+                w: 44, h: 84,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                speed: 3 + Math.random() * 5
+            });
+        }
+    },
+
+    handleCollision: function(e) {
+        // خوارزمية AABB للكشف عن التصادم
+        if (this.player.x < e.x + e.w &&
+            this.player.x + this.player.w > e.x &&
+            this.player.y < e.y + e.h &&
+            this.player.y + this.player.h > e.y) {
+            
+            this.active = false;
+            this.logger("تصادم! جاري إعادة تهيئة النظام", "error");
+            setTimeout(() => location.reload(), 2000);
+        }
+    },
+
+    update: function() {
+        this.frame++;
+        this.stats.score += 0.1;
+        this.stats.speed += 0.001; // زيادة الصعوبة تدريجياً
+
+        // حركة اللاعب بسلاسة (Interpolation)
+        this.player.x += (this.player.targetX - this.player.x) * 0.2;
+
+        this.spawnObstacle();
+
+        this.entities.forEach((e, index) => {
+            e.y += e.speed + (this.stats.speed - 5);
+            this.handleCollision(e);
+            if(e.y > this.canvas.height) this.entities.splice(index, 1);
+        });
+
+        // تحديث الـ HUD
+        document.getElementById('speed-val').innerText = Math.floor(this.stats.speed * 20);
+        document.getElementById('dist-val').innerText = Math.floor(this.stats.score);
+    },
+
+    render: function() {
+        this.drawRoad();
+        this.drawPixelCar(this.player.x, this.player.y, this.player.color, true);
+        this.entities.forEach(e => this.drawPixelCar(e.x, e.y, e.color));
+    },
+
+    gameLoop: function(timestamp) {
+        if(!this.active) return;
+        this.update();
+        this.render();
+        requestAnimationFrame((t) => this.gameLoop(t));
+    }
+};
+
+// التحكم (Keyboard)
+window.addEventListener('keydown', (e) => {
+    if(e.key === 'ArrowLeft') Engine.player.targetX = Math.max(20, Engine.player.x - 100);
+    if(e.key === 'ArrowRight') Engine.player.targetX = Math.min(380, Engine.player.x + 100);
+});
+
+// دعم اللمس للجوال (علاج لمشكلة التوافق)
+window.addEventListener('touchstart', (e) => {
+    const touchX = e.touches[0].clientX;
+    if(touchX < window.innerWidth / 2) Engine.player.targetX = Math.max(20, Engine.player.x - 100);
+    else Engine.player.targetX = Math.min(380, Engine.player.x + 100);
+});
+</script>
 </body>
 </html>
