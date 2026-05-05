@@ -1,30 +1,33 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>3D Flight Simulator</title>
+    <title>3D Flight Simulator - Abdullah</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #87CEEB; font-family: sans-serif; }
-        #instructions {
-            position: absolute; top: 10px; left: 10px;
-            background: rgba(0,0,0,0.7); color: white; padding: 15px; border-radius: 8px;
+        body { margin: 0; overflow: hidden; background-color: #111; }
+        #ui {
+            position: absolute; top: 20px; right: 20px;
+            color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: rgba(0, 0, 0, 0.6); padding: 15px; border-radius: 10px;
+            pointer-events: none; border: 1px solid #444;
         }
-        #speedometer {
-            position: absolute; bottom: 20px; left: 20px;
-            color: #00ff00; font-size: 24px; font-weight: bold;
-        }
+        .stat { font-size: 18px; margin-bottom: 5px; color: #00ffcc; }
     </style>
 </head>
 <body>
 
-<div id="instructions">
-    <b>التحكم:</b><br>
-    Space: تشغيل المحرك وزيادة السرعة للإقلاع<br>
-    W / S: رفع أو خفض مقدمة الطائرة<br>
-    A / D: الالتفاف يميناً ويساراً
+<div id="ui">
+    <div class="stat" id="speed">السرعة: 0</div>
+    <div class="stat" id="alt">الارتفاع: 0</div>
+    <hr>
+    <small>
+        التحكم: W/S (رفع/خفض) <br>
+        A/D (دوران) <br>
+        <b>Space: تشغيل المحرك ودفع الإقلاع</b>
+    </small>
 </div>
-<div id="speedometer">السرعة: 0</div>
 
+<!-- استدعاء المكتبة عبر رابط موثوق لضمان عدم توقف الموقع -->
 <script type="importmap">
     { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
 </script>
@@ -32,86 +35,110 @@
 <script type="module">
     import * as THREE from 'three';
 
-    // الإعدادات الأساسية
+    // 1. الإعدادات الأساسية (Scene & Camera)
     const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x87CEEB); // سماء زرقاء
+    scene.fog = new THREE.Fog(0x87CEEB, 10, 500);
+
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
     document.body.appendChild(renderer.domElement);
 
-    // الإضاءة
-    const light = new THREE.DirectionalLight(0xffffff, 1);
-    light.position.set(5, 10, 7.5);
-    scene.add(light);
-    scene.add(new THREE.AmbientLight(0x404040));
+    // 2. الإضاءة
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    scene.add(ambientLight);
+    const sunLight = new THREE.DirectionalLight(0xffffff, 1);
+    sunLight.position.set(50, 100, 50);
+    scene.add(sunLight);
 
-    // الأرضية (المطار)
-    const grid = new THREE.GridHelper(2000, 100, 0x000000, 0x444444);
+    // 3. الأرضية والمطار
+    const floorGeo = new THREE.PlaneGeometry(2000, 2000);
+    const floorMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    scene.add(floor);
+
+    const grid = new THREE.GridHelper(2000, 100, 0xffffff, 0x555555);
     scene.add(grid);
 
-    // بناء طائرة بسيطة (مجموعة صناديق)
+    // 4. بناء الطائرة (Group)
     const airplane = new THREE.Group();
     
-    // جسم الطائرة
-    const bodyGeo = new THREE.BoxGeometry(0.5, 0.5, 2);
-    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
-    const body = new THREE.Mesh(bodyGeo, bodyMat);
+    // جسم الطائرة الرئيسي
+    const body = new THREE.Mesh(
+        new THREE.BoxGeometry(0.6, 0.6, 2.5),
+        new THREE.MeshStandardMaterial({ color: 0xdddddd })
+    );
     airplane.add(body);
 
     // الأجنحة
-    const wingGeo = new THREE.BoxGeometry(3, 0.1, 0.7);
-    const wing = new THREE.Mesh(wingGeo, bodyMat);
-    airplane.add(wing);
+    const wings = new THREE.Mesh(
+        new THREE.BoxGeometry(4, 0.05, 0.8),
+        new THREE.MeshStandardMaterial({ color: 0xaa0000 })
+    );
+    airplane.add(wings);
 
-    airplane.position.y = 0.25; // رفعها قليلاً عن الأرض
+    airplane.position.y = 0.3;
     scene.add(airplane);
 
-    // متغيرات الحركة
+    // 5. نظام الحركة والفيزياء
     let speed = 0;
     const keys = {};
-    let pitch = 0; // الانحناء للأعلى والأسفل
-    let yaw = 0;   // الالتفاف
+    const stats = {
+        speed: document.getElementById('speed'),
+        alt: document.getElementById('alt')
+    };
 
     window.addEventListener('keydown', (e) => keys[e.code] = true);
     window.addEventListener('keyup', (e) => keys[e.code] = false);
 
-    function updatePhysics() {
-        // زيادة السرعة عند الضغط على Space
+    function update() {
+        // زر الـ Space يعمل كمحرك دفع (Engine Thrust)
         if (keys['Space']) {
-            speed += 0.005;
+            speed = THREE.MathUtils.lerp(speed, 0.8, 0.01);
         } else {
-            speed *= 0.99; // احتكاك بسيط لتقليل السرعة
+            speed = THREE.MathUtils.lerp(speed, 0, 0.005); // تباطؤ تدريجي
         }
 
-        // التحكم في الاتجاهات (فقط إذا كانت هناك سرعة)
-        if (speed > 0.01) {
+        // التحكم WASD
+        if (speed > 0.05) {
+            // W و S للتحكم في الـ Pitch (الارتفاع والانخفاض)
             if (keys['KeyW']) airplane.rotation.x -= 0.02;
             if (keys['KeyS']) airplane.rotation.x += 0.02;
-            if (keys['KeyA']) airplane.rotation.y += 0.02;
-            if (keys['KeyD']) airplane.rotation.y -= 0.02;
+            
+            // A و D للتحكم في الـ Yaw (الدوران يمين ويسار)
+            if (keys['KeyA']) airplane.rotation.y += 0.025;
+            if (keys['KeyD']) airplane.rotation.y -= 0.025;
         }
 
-        // تحريك الطائرة للأمام بناءً على اتجاهها
+        // منع الطائرة من الغوص تحت الأرض
+        if (airplane.position.y < 0.3) {
+            airplane.position.y = 0.3;
+            if (airplane.rotation.x > 0) airplane.rotation.x = 0;
+        }
+
+        // تحريك الطائرة للأمام بناءً على اتجاهها المحلي
         airplane.translateZ(speed);
 
-        // الكاميرا تتبع الطائرة
-        const relativeCameraOffset = new THREE.Vector3(0, 1.5, -5);
-        const cameraOffset = relativeCameraOffset.applyMatrix4(airplane.matrixWorld);
-        camera.position.x = cameraOffset.x;
-        camera.position.y = cameraOffset.y;
-        camera.position.z = cameraOffset.z;
+        // الكاميرا تتبع الطائرة بسلاسة
+        const offset = new THREE.Vector3(0, 2, -7);
+        const worldOffset = offset.applyMatrix4(airplane.matrixWorld);
+        camera.position.lerp(worldOffset, 0.1);
         camera.lookAt(airplane.position);
 
-        document.getElementById('speedometer').innerText = `السرعة: ${Math.round(speed * 1000)}`;
+        // تحديث الواجهة
+        stats.speed.innerText = `السرعة: ${Math.round(speed * 500)}`;
+        stats.alt.innerText = `الارتفاع: ${Math.round(airplane.position.y * 10)}`;
     }
 
     function animate() {
         requestAnimationFrame(animate);
-        updatePhysics();
+        update();
         renderer.render(scene, camera);
     }
 
-    // التعامل مع تغيير حجم النافذة
     window.addEventListener('resize', () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
