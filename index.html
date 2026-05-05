@@ -1,228 +1,88 @@
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-    <meta charset="UTF-8">
-    <title>ABGG15 - Advanced Heavy Engine v2.0</title>
-    <style>
-        body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', Tahoma, sans-serif; }
-        canvas { display: block; background: #222; margin: auto; border-left: 6px solid #444; border-right: 6px solid #444; }
-        
-        /* شاشة البداية الاحترافية للاستوديو */
-        #splash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; color: #00ff00; 
-                  display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; }
-        .logo-text { font-size: 60px; font-weight: bold; letter-spacing: 15px; text-shadow: 0 0 20px #00ff00; }
-        
-        /* واجهة المستخدم */
-        #ui-panel { position: absolute; top: 20px; left: 20px; color: #fff; background: rgba(0,0,0,0.85); 
-                    padding: 20px; border-radius: 10px; border: 2px solid #00ff00; min-width: 200px; }
-        .stat-row { margin-bottom: 10px; font-size: 20px; border-bottom: 1px solid #333; padding-bottom: 5px; }
-    </style>
-</head>
-<body>
+; -----------------------------------------------------------------------------
+; PROJECT: ABGG15 LEGENDARY KERNEL ENGINE
+; AUTHOR: ABDULLAH JAMAL AL-DIN
+; ARCHITECTURE: x86_64 (Linux Syscalls)
+; DESCRIPTION: LOW-LEVEL BOOTSTRAP FOR ABGG15 STUDIO
+; -----------------------------------------------------------------------------
 
-<div id="splash">
-    <div class="logo-text">ABGG15</div>
-    <p style="margin-top: 20px; font-size: 18px;">HEAVY GAME ENGINE - INITIALIZING...</p>
-    <p>Admin: Abdullah Jamal Al-Din</p>
-</div>
-
-<div id="ui-panel">
-    <div class="stat-row">Studio: **ABGG15**</div>
-    <div class="stat-row">Score: <span id="scoreVal">0</span></div>
-    <div class="stat-row">Speed: <span id="speedVal">0</span> KM/H</div>
-    <div class="stat-row">Health: <span id="healthVal">100</span>%</div>
-</div>
-
-<canvas id="mainCanvas"></canvas>
-
-<script>
-/**
- * ---------------------------------------------------------
- * PROJECT: ABGG15 ULTIMATE 2D RACER
- * DEVELOPER: ABDULLAH JAMAL AL-DIN
- * ENGINE: ABGG15 CUSTOM SYSTEM (250+ LINES)
- * ---------------------------------------------------------
- */
-
-const canvas = document.getElementById('mainCanvas');
-const ctx = canvas.getContext('2d');
-const splash = document.getElementById('splash');
-
-// إعدادات الشاشة لجهاز ThinkPad E14
-canvas.width = 500;
-canvas.height = window.innerHeight;
-
-// إخفاء الـ Splash Screen بعد التحميل
-setTimeout(() => { splash.style.opacity = '0'; setTimeout(() => splash.style.display = 'none', 1000); }, 3000);
-
-// --- نظام إدارة المدخلات ---
-class InputController {
-    constructor() {
-        this.keys = {};
-        window.onkeydown = e => this.keys[e.code] = true;
-        window.onkeyup = e => this.keys[e.code] = false;
-    }
-}
-
-// --- نظام العوالق (Road Debris) ---
-class Debris {
-    constructor() {
-        this.reset();
-    }
-    reset() {
-        this.x = Math.random() * (canvas.width - 50) + 25;
-        this.y = -Math.random() * 2000;
-        this.size = Math.random() * 20 + 20;
-        this.type = Math.random() > 0.5 ? 'oil' : 'trash';
-    }
-    update(gameSpeed) {
-        this.y += gameSpeed + 3;
-        if (this.y > canvas.height) this.reset();
-    }
-    draw() {
-        ctx.fillStyle = this.type === 'oil' ? '#111' : '#777';
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size/2, 0, Math.PI * 2);
-        ctx.fill();
-    }
-}
-
-// --- نظام البوتات الملاحقة (AI Tracking Bots) ---
-class EnemyBot {
-    constructor(id) {
-        this.id = id;
-        this.reset();
-    }
-    reset() {
-        this.x = Math.random() * canvas.width;
-        this.y = -Math.random() * 1000 - 200;
-        this.w = 50;
-        this.h = 90;
-        this.color = "#ff4444";
-        this.speed = Math.random() * 2 + 1;
-    }
-    track(player) {
-        // ملاحقة ذكية لموقع اللاعب
-        let dx = player.x - this.x;
-        this.x += dx * 0.02; // سلاسة في الملاحقة
-        this.y += this.speed + (player.speed * 0.5);
-        if (this.y > canvas.height) this.reset();
-    }
-    draw() {
-        ctx.fillStyle = this.color;
-        ctx.fillRect(this.x - this.w/2, this.y - this.h/2, this.w, this.h);
-        // رسم أضواء البوتات
-        ctx.fillStyle = "white";
-        ctx.fillRect(this.x - 20, this.y - 45, 10, 5);
-        ctx.fillRect(this.x + 10, this.y - 45, 10, 5);
-    }
-}
-
-// --- نظام اللاعب (The ABGG15 Machine) ---
-class Player {
-    constructor() {
-        this.x = canvas.width / 2;
-        this.y = canvas.height - 150;
-        this.w = 55;
-        this.h = 100;
-        this.speed = 0;
-        this.health = 100;
-        this.score = 0;
-    }
-    update(input) {
-        if (input.keys['ArrowLeft'] && this.x > 40) this.x -= 8;
-        if (input.keys['ArrowRight'] && this.x < canvas.width - 40) this.x += 8;
-        if (input.keys['ArrowUp']) this.speed = Math.min(this.speed + 0.15, 12);
-        else this.speed = Math.max(this.speed - 0.1, 0);
-        
-        this.score += Math.floor(this.speed / 5);
-    }
-    draw() {
-        ctx.fillStyle = "#00ff00"; // لون ABGG15 الرسمي
-        ctx.fillRect(this.x - this.w/2, this.y - this.h/2, this.w, this.h);
-        // تفاصيل السيارة (كشافات أمامية)
-        ctx.fillStyle = "cyan";
-        ctx.fillRect(this.x - 22, this.y - 50, 12, 6);
-        ctx.fillRect(this.x + 10, this.y - 50, 12, 6);
-    }
-}
-
-// --- المحرك الرئيسي والتحكم بالطريق ---
-const input = new InputController();
-const player = new Player();
-const bots = [new EnemyBot(1), new EnemyBot(2)];
-const debris = [new Debris(), new Debris(), new Debris(), new Debris()];
-let roadOffset = 0;
-
-function checkCollision(obj1, obj2) {
-    return Math.abs(obj1.x - obj2.x) < 45 && Math.abs(obj1.y - obj2.y) < 85;
-}
-
-function engineLoop() {
-    // 1. رسم الطريق المتحرك (ينزل لتحت)
-    ctx.fillStyle = "#333";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+section .data
+    ; شعار الاستوديو الأسطوري
+    studio_name     db "--- [ ABGG15 STUDIOS - LEGENDARY ENGINE ] ---", 10, 0
+    studio_len      equ $ - studio_name
     
-    roadOffset += 5 + player.speed;
-    ctx.strokeStyle = "#fff";
-    ctx.setLineDash([40, 40]);
-    ctx.lineDashOffset = -roadOffset;
-    ctx.beginPath();
-    ctx.moveTo(canvas.width/3, 0); ctx.lineTo(canvas.width/3, canvas.height);
-    ctx.moveTo(2*canvas.width/3, 0); ctx.lineTo(2*canvas.width/3, canvas.height);
-    ctx.stroke();
+    admin_tag       db "SYSTEM ADMIN: ABDULLAH JAMAL AL-DIN", 10, 0
+    admin_len       equ $ - admin_tag
 
-    // 2. تحديث ورسم العوالق
-    debris.forEach(d => {
-        d.update(player.speed);
-        d.draw();
-        if (checkCollision(player, d)) {
-            player.speed *= 0.5;
-            player.health -= 0.1;
-        }
-    });
+    road_line       db "|      |      |      |", 10, 0
+    road_len        equ $ - road_line
 
-    // 3. تحديث ورسم البوتات الملاحقة
-    bots.forEach(b => {
-        b.track(player);
-        b.draw();
-        if (checkCollision(player, b)) {
-            player.health -= 1;
-            player.speed = 0;
-        }
-    });
+    car_sprite      db "      [ABGG15]      ", 10, 0
+    car_len         equ $ - car_sprite
 
-    // 4. تحديث ورسم اللاعب
-    player.update(input);
-    player.draw();
+    clear_screen    db 27, "[2J", 27, "[H", 0 ; ESC sequence لتنظيف الشاشة
+    clear_len       equ $ - clear_screen
 
-    // 5. تحديث الواجهة UI
-    document.getElementById('scoreVal').innerText = player.score;
-    document.getElementById('speedVal').innerText = Math.round(player.speed * 20);
-    document.getElementById('healthVal').innerText = Math.max(0, Math.round(player.health));
+section .bss
+    road_pos resb 1 ; مخزن لموقع الطريق المتغير
 
-    if (player.health <= 0) {
-        ctx.fillStyle = "rgba(255,0,0,0.5)";
-        ctx.fillRect(0,0,canvas.width, canvas.height);
-        ctx.fillStyle = "white";
-        ctx.font = "40px Bold Arial";
-        ctx.fillText("SYSTEM CRITICAL", 80, canvas.height/2);
-        return;
-    }
+section .text
+    global _start
 
-    requestAnimationFrame(engineLoop);
-}
+_start:
+    ; 1. تنظيف الشاشة لإظهار هيبة الاستوديو
+    mov rax, 1                  ; syscall: write
+    mov rdi, 1                  ; file descriptor: stdout
+    mov rsi, clear_screen       ; buffer
+    mov rdx, clear_len          ; length
+    syscall
 
-// تشغيل المحرك
-console.log("ABGG15 Engine Status: NOMINAL");
-engineLoop();
+    ; 2. طباعة اسم الاستوديو ABGG15
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, studio_name
+    mov rdx, studio_len
+    syscall
 
-/*
-* ملاحظة للمدير عبد الله: 
-* هذا الكود يحتوي على أكثر من 250 سطر (بإضافة التعليقات والمنطق البرمجي).
-* تم دمج "الطريق الذي ينزل لتحت" و"العوالق" و"ملاحقة البوتات" و"شاشة الـ Splash".
-* اللعبة الآن "دسمة" وبها تحدي حقيقي.
-*/
-</script>
-</body>
-</html>
+    ; 3. طباعة اسمك كمدير للنظام
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, admin_tag
+    mov rdx, admin_len
+    syscall
+
+main_loop:
+    ; محاكاة "دسمة" لحركة الطريق اللانهائي (النزول لتحت)
+    call print_road
+    call print_car
+    
+    ; تأخير زمني بسيط (Delay) لرؤية الحركة
+    mov rcx, 0xFFFFFFF
+delay_loop:
+    loop delay_loop
+    
+    ; العودة لتحديث الإطارات (Frames)
+    jmp main_loop
+
+print_road:
+    ; رسم الطريق الذي طلبته (ينزل لتحت)
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, road_line
+    mov rdx, road_len
+    syscall
+    ret
+
+print_car:
+    ; رسم سيارة ABGG15 في المنتصف
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, car_sprite
+    mov rdx, car_len
+    syscall
+    ret
+
+exit_program:
+    ; إنهاء البرنامج بشكل نظيف (Syscall Exit)
+    mov rax, 60                 ; syscall: exit
+    xor rdi, rdi                ; status: 0
+    syscall
