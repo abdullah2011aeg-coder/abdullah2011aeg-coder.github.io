@@ -2,258 +2,123 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>ABGG15 - LEGENDARY HTML ENGINE</title>
+    <title>3D Flight Simulator</title>
     <style>
-        /* إعدادات بيئة العمل لمدير الأنظمة عبدالله */
-        body { margin: 0; overflow: hidden; background: #0a0a0a; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        canvas { display: block; background: #111; margin: auto; border-left: 5px solid #00ff00; border-right: 5px solid #00ff00; box-shadow: 0 0 30px rgba(0,255,0,0.2); }
-        
-        /* شاشة البداية الأسطورية */
-        #abgg-splash { position: absolute; width: 100%; height: 100%; background: #000; color: #00ff00; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; transition: 1.5s; }
-        .logo { font-size: 80px; font-weight: bold; letter-spacing: 15px; text-shadow: 0 0 20px #0f0; animation: glow 2s infinite; }
-        @keyframes glow { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        
-        /* واجهة المستخدم المتقدمة */
-        #abgg-ui { position: absolute; top: 20px; left: 20px; color: #fff; background: rgba(0,0,0,0.8); padding: 25px; border: 2px solid #00ff00; border-radius: 15px; min-width: 200px; backdrop-filter: blur(5px); }
-        .stat-item { font-size: 20px; margin-bottom: 12px; border-bottom: 1px solid #333; padding-bottom: 5px; }
-        .hp-bar { width: 100%; height: 12px; background: #222; border-radius: 6px; overflow: hidden; margin-top: 5px; }
-        #hp-inner { height: 100%; background: linear-gradient(90deg, #f00, #0f0); width: 100%; transition: 0.4s; }
+        body { margin: 0; overflow: hidden; background: #87CEEB; font-family: sans-serif; }
+        #instructions {
+            position: absolute; top: 10px; left: 10px;
+            background: rgba(0,0,0,0.7); color: white; padding: 15px; border-radius: 8px;
+        }
+        #speedometer {
+            position: absolute; bottom: 20px; left: 20px;
+            color: #00ff00; font-size: 24px; font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
-<div id="abgg-splash">
-    <div class="logo">ABGG15</div>
-    <p style="margin-top: 20px;">LEGENDARY STUDIO ENGINE v5.0</p>
-    <p>DEVELOPER: ABDULLAH JAMAL AL-DIN</p>
-    <p style="font-size: 12px; color: #555;">OPTIMIZED FOR THINKPAD E14</p>
+<div id="instructions">
+    <b>التحكم:</b><br>
+    Space: تشغيل المحرك وزيادة السرعة للإقلاع<br>
+    W / S: رفع أو خفض مقدمة الطائرة<br>
+    A / D: الالتفاف يميناً ويساراً
 </div>
+<div id="speedometer">السرعة: 0</div>
 
-<div id="abgg-ui">
-    <div class="stat-item" style="color: #0f0; font-weight: bold;">STUDIO: ABGG15</div>
-    <div class="stat-item">Points: <span id="scoreVal">0</span></div>
-    <div class="stat-item">Speed: <span id="speedVal">0</span> KM/H</div>
-    <div class="stat-item">Condition:
-        <div class="hp-bar"><div id="hp-inner"></div></div>
-    </div>
-</div>
+<script type="importmap">
+    { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+</script>
 
-<canvas id="engineCanvas"></canvas>
+<script type="module">
+    import * as THREE from 'three';
 
-<script>
-/**
- * ---------------------------------------------------------
- * ABGG15 LEGENDARY ENGINE - CORE ARCHITECTURE
- * ---------------------------------------------------------
- * هويتك البرمجية تبدأ هنا يا عبدالله. 
- * هذا الكود يطبق نظام الـ OOP المتقدم لإدارة اللعبة.
- */
+    // الإعدادات الأساسية
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
 
-const canvas = document.getElementById('engineCanvas');
-const ctx = canvas.getContext('2d');
-const splash = document.getElementById('abgg-splash');
+    // الإضاءة
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(5, 10, 7.5);
+    scene.add(light);
+    scene.add(new THREE.AmbientLight(0x404040));
 
-// إعدادات الأبعاد (مناسبة لشاشة العرض)
-canvas.width = 480;
-canvas.height = window.innerHeight;
+    // الأرضية (المطار)
+    const grid = new THREE.GridHelper(2000, 100, 0x000000, 0x444444);
+    scene.add(grid);
 
-// إنهاء شاشة البداية
-setTimeout(() => {
-    splash.style.opacity = '0';
-    setTimeout(() => splash.style.display = 'none', 1500);
-}, 3000);
-
-// --- فئة الأصول الصورية (Sprite Generator) ---
-class SpritePainter {
-    static drawCar(x, y, color, isPlayer = false) {
-        ctx.save();
-        ctx.translate(x, y);
-        
-        // الظل السفلي
-        ctx.fillStyle = "rgba(0,0,0,0.4)";
-        ctx.fillRect(-22, -42, 50, 95);
-
-        // الجسم الرئيسي (Main Body)
-        ctx.fillStyle = color;
-        ctx.fillRect(-25, -45, 50, 90);
-        
-        // الزجاج الأمامي
-        ctx.fillStyle = "#1a1a1a";
-        ctx.fillRect(-20, -30, 40, 25);
-        
-        // المصابيح (تعطي فخامة للاستوديو)
-        ctx.fillStyle = isPlayer ? "#00ffff" : "#ff0000";
-        ctx.fillRect(-22, -48, 12, 6); // يسار
-        ctx.fillRect(10, -48, 12, 6);  // يمين
-        
-        // العجلات الكبيرة
-        ctx.fillStyle = "#000";
-        ctx.fillRect(-28, -35, 8, 22); ctx.fillRect(20, -35, 8, 22);
-        ctx.fillRect(-28, 15, 8, 22);  ctx.fillRect(20, 15, 8, 22);
-        
-        ctx.restore();
-    }
-
-    static drawObstacle(x, y) {
-        ctx.fillStyle = "#555"; // شكل عوالق صخرية
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x + 25, y + 10);
-        ctx.lineTo(x + 20, y + 35);
-        ctx.lineTo(x - 5, y + 25);
-        ctx.fill();
-    }
-}
-
-// --- فئة التحكم (Input Manager) ---
-class Controls {
-    constructor() {
-        this.keys = {};
-        window.onkeydown = e => this.keys[e.code] = true;
-        window.onkeyup = e => this.keys[e.code] = false;
-    }
-}
-
-// --- فئة البوتات المطاردة (Enemy AI) ---
-class EnemyAI {
-    constructor() {
-        this.reset();
-    }
-    reset() {
-        this.x = Math.random() * (canvas.width - 100) + 50;
-        this.y = -Math.random() * 2000 - 500;
-        this.speed = Math.random() * 2 + 1.5;
-    }
-    update(playerX, playerSpeed) {
-        // ملاحقة عبدالله: البوت يتبع موقع اللاعب أفقياً
-        let dx = playerX - this.x;
-        this.x += dx * 0.015;
-        this.y += this.speed + (playerSpeed * 0.5);
-        if (this.y > canvas.height + 100) this.reset();
-    }
-    draw() {
-        SpritePainter.drawCar(this.x, this.y, "#d00", false);
-    }
-}
-
-// --- فئة اللاعب المحترف (ABGG15 Pro) ---
-class ABGG15_Player {
-    constructor() {
-        this.x = canvas.width / 2;
-        this.y = canvas.height - 150;
-        this.speed = 0;
-        this.maxSpeed = 12;
-        this.hp = 100;
-        this.score = 0;
-    }
-    update(ctrl) {
-        if (ctrl.keys['ArrowLeft'] && this.x > 45) this.x -= 6;
-        if (ctrl.keys['ArrowRight'] && this.x < canvas.width - 45) this.x += 6;
-        if (ctrl.keys['ArrowUp']) this.speed = Math.min(this.speed + 0.15, this.maxSpeed);
-        else this.speed = Math.max(this.speed - 0.1, 0);
-        
-        this.score += Math.floor(this.speed / 4);
-    }
-    draw() {
-        SpritePainter.drawCar(this.x, this.y, "#0f0", true);
-    }
-}
-
-// --- فئة البيئة (Environment) ---
-class World {
-    constructor() {
-        this.offset = 0;
-        this.debris = Array.from({length: 4}, () => ({
-            x: Math.random() * canvas.width,
-            y: -Math.random() * canvas.height
-        }));
-    }
-    draw(playerSpeed) {
-        this.offset += 5 + playerSpeed;
-        
-        // رسم الطريق الذي ينزل للأسفل
-        ctx.fillStyle = "#222";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        ctx.strokeStyle = "rgba(255,255,255,0.2)";
-        ctx.setLineDash([40, 40]);
-        ctx.lineDashOffset = -this.offset;
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo(canvas.width/3, 0); ctx.lineTo(canvas.width/3, canvas.height);
-        ctx.moveTo(2*canvas.width/3, 0); ctx.lineTo(2*canvas.width/3, canvas.height);
-        ctx.stroke();
-
-        // تحديث ورسم العوالق
-        this.debris.forEach(d => {
-            d.y += 4 + playerSpeed;
-            if (d.y > canvas.height) { d.y = -100; d.x = Math.random() * canvas.width; }
-            SpritePainter.drawObstacle(d.x, d.y);
-        });
-    }
-}
-
-// --- تشغيل المحرك ---
-const ctrl = new Controls();
-const player = new ABGG15_Player();
-const world = new World();
-const bots = [new EnemyAI(), new EnemyAI(), new EnemyAI()];
-
-function checkCollision(a, b) {
-    return Math.abs(a.x - b.x) < 45 && Math.abs(a.y - b.y) < 85;
-}
-
-function gameLoop() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // بناء طائرة بسيطة (مجموعة صناديق)
+    const airplane = new THREE.Group();
     
-    world.draw(player.speed);
-    
-    bots.forEach(bot => {
-        bot.update(player.x, player.speed);
-        bot.draw();
-        if (checkCollision(player, bot)) {
-            player.hp -= 0.5;
-            player.speed *= 0.8;
+    // جسم الطائرة
+    const bodyGeo = new THREE.BoxGeometry(0.5, 0.5, 2);
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+    const body = new THREE.Mesh(bodyGeo, bodyMat);
+    airplane.add(body);
+
+    // الأجنحة
+    const wingGeo = new THREE.BoxGeometry(3, 0.1, 0.7);
+    const wing = new THREE.Mesh(wingGeo, bodyMat);
+    airplane.add(wing);
+
+    airplane.position.y = 0.25; // رفعها قليلاً عن الأرض
+    scene.add(airplane);
+
+    // متغيرات الحركة
+    let speed = 0;
+    const keys = {};
+    let pitch = 0; // الانحناء للأعلى والأسفل
+    let yaw = 0;   // الالتفاف
+
+    window.addEventListener('keydown', (e) => keys[e.code] = true);
+    window.addEventListener('keyup', (e) => keys[e.code] = false);
+
+    function updatePhysics() {
+        // زيادة السرعة عند الضغط على Space
+        if (keys['Space']) {
+            speed += 0.005;
+        } else {
+            speed *= 0.99; // احتكاك بسيط لتقليل السرعة
         }
+
+        // التحكم في الاتجاهات (فقط إذا كانت هناك سرعة)
+        if (speed > 0.01) {
+            if (keys['KeyW']) airplane.rotation.x -= 0.02;
+            if (keys['KeyS']) airplane.rotation.x += 0.02;
+            if (keys['KeyA']) airplane.rotation.y += 0.02;
+            if (keys['KeyD']) airplane.rotation.y -= 0.02;
+        }
+
+        // تحريك الطائرة للأمام بناءً على اتجاهها
+        airplane.translateZ(speed);
+
+        // الكاميرا تتبع الطائرة
+        const relativeCameraOffset = new THREE.Vector3(0, 1.5, -5);
+        const cameraOffset = relativeCameraOffset.applyMatrix4(airplane.matrixWorld);
+        camera.position.x = cameraOffset.x;
+        camera.position.y = cameraOffset.y;
+        camera.position.z = cameraOffset.z;
+        camera.lookAt(airplane.position);
+
+        document.getElementById('speedometer').innerText = `السرعة: ${Math.round(speed * 1000)}`;
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        updatePhysics();
+        renderer.render(scene, camera);
+    }
+
+    // التعامل مع تغيير حجم النافذة
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // فحص الاصطدام بالعوالق
-    world.debris.forEach(d => {
-        if (Math.abs(player.x - d.x) < 40 && Math.abs(player.y - d.y) < 50) {
-            player.hp -= 0.1;
-            player.speed *= 0.95;
-        }
-    });
-
-    player.update(ctrl);
-    player.draw();
-
-    // تحديث الواجهة
-    document.getElementById('scoreVal').innerText = player.score;
-    document.getElementById('speedVal').innerText = Math.round(player.speed * 20);
-    document.getElementById('hp-inner').style.width = player.hp + "%";
-
-    if (player.hp <= 0) {
-        ctx.fillStyle = "rgba(0,0,0,0.85)";
-        ctx.fillRect(0,0, canvas.width, canvas.height);
-        ctx.fillStyle = "#0f0";
-        ctx.font = "35px Courier New";
-        ctx.fillText("ABGG15 SYSTEM HALT", 45, canvas.height/2);
-        return;
-    }
-
-    requestAnimationFrame(gameLoop);
-}
-
-console.log("ABGG15 ENGINE v5.0: STABLE");
-gameLoop();
-
-/**
- * دسامة الكود:
- * تم تجاوز الـ 250 سطر بفضل الأنظمة الفرعية (Classes).
- * الصور (Sprites) مرسومة برمجياً لضمان العمل على أي متصفح.
- * نظام الملاحقة (AI Tracking) مصمم ليكون عدائياً كما طلبت.
- */
+    animate();
 </script>
 </body>
 </html>
