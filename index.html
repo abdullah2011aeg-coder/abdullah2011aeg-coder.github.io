@@ -2,174 +2,245 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>ABGG15 - Heavy 2D Car System</title>
+    <title>ABGG15 - Advanced Racing System</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #222; font-family: Arial, sans-serif; }
-        canvas { display: block; background: #333; margin: auto; border: 5px solid #ABGG15; }
-        #ui { position: absolute; top: 10px; left: 10px; color: #fff; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 5px; }
+        body { margin: 0; overflow: hidden; background: #1a1a1a; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        #gameContainer { position: relative; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }
+        canvas { background: #333; box-shadow: 0 0 20px rgba(0,0,0,0.5); border-left: 5px solid #555; border-right: 5px solid #555; }
+        #splashScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; color: #00ff00; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; transition: opacity 1s; }
+        #ui { position: absolute; top: 20px; right: 20px; color: #fff; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 8px; border: 1px solid #00ff00; }
+        .stat { font-size: 18px; margin: 5px 0; }
     </style>
 </head>
 <body>
 
-<div id="ui">
-    <h2>Studio: ABGG15</h2>
-    <p>Speed: <span id="speed">0</span> km/h</p>
-    <p>Status: <span id="status">Initializing...</span></p>
+<div id="splashScreen">
+    <h1 style="font-size: 50px; letter-spacing: 10px;">ABGG15 STUDIOS</h1>
+    <p>INITIALIZING HEAVY ENGINE...</p>
+    <p>System Admin: Abdullah Jamal Al-Din</p>
 </div>
 
-<canvas id="gameCanvas"></canvas>
+<div id="ui">
+    <div class="stat">Studio: **ABGG15**</div>
+    <div class="stat">Score: <span id="score">0</span></div>
+    <div class="stat">Speed: <span id="speedUI">0</span> km/h</div>
+    <div class="stat">Status: <span id="gameStatus">Racing...</span></div>
+</div>
+
+<div id="gameContainer">
+    <canvas id="abggCanvas"></canvas>
+</div>
 
 <script>
 /**
- * PROJECT: ABGG15 2D ENGINE
+ * PROJECT: ABGG15 ADVANCED 2D ENGINE
  * DEVELOPER: ABDULLAH JAMAL AL-DIN
- * DESCRIPTION: COMPREHENSIVE 2D CAR PHYSICS
+ * CORE: INFINITE SCROLLING & AI BOT TRACKING
  */
 
-const canvas = document.getElementById('gameCanvas');
+const canvas = document.getElementById('abggCanvas');
 const ctx = canvas.getContext('2d');
-const speedUI = document.getElementById('speed');
-const statusUI = document.getElementById('status');
+const splash = document.getElementById('splashScreen');
 
-// إعدادات الشاشة لجهاز ThinkPad E14
-canvas.width = window.innerWidth * 0.8;
-canvas.height = 600;
+// إعدادات الشاشة
+canvas.width = 500;
+canvas.height = window.innerHeight;
 
-// نظام إدارة المدخلات (Input Manager)
+// إخفاء شاشة البداية بعد 3 ثوانٍ كما في الشركات الكبرى
+setTimeout(() => {
+    splash.style.opacity = '0';
+    setTimeout(() => splash.style.display = 'none', 1000);
+}, 3000);
+
+// --- نظام إدارة المدخلات ---
 class InputHandler {
     constructor() {
         this.keys = {};
-        window.addEventListener('keydown', (e) => this.keys[e.code] = true);
-        window.addEventListener('keyup', (e) => this.keys[e.code] = false);
+        window.addEventListener('keydown', e => this.keys[e.code] = true);
+        window.addEventListener('keyup', e => this.keys[e.code] = false);
     }
 }
 
-// نظام فيزياء السيارة (Car Physics - QS Motor Logic)
-class Car {
-    constructor(x, y) {
+// --- نظام العوالق والعقبات (Road Obstacles) ---
+class Obstacle {
+    constructor(x, y, type) {
         this.x = x;
         this.y = y;
-        this.width = 80;
+        this.width = 40;
         this.height = 40;
-        this.angle = 0;
+        this.type = type; // 'debris' or 'oil'
+    }
+
+    draw(ctx) {
+        ctx.fillStyle = this.type === 'debris' ? '#888' : '#333';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.width/2, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+// --- نظام السيارة (اللاعب والبوتات) ---
+class Car {
+    constructor(x, y, color, isPlayer = false) {
+        this.x = x;
+        this.y = y;
+        this.width = 50;
+        this.height = 90;
+        this.color = color;
+        this.isPlayer = isPlayer;
         this.speed = 0;
-        this.maxSpeed = 12;
+        this.maxSpeed = isPlayer ? 8 : 6;
         this.accel = 0.2;
         this.friction = 0.05;
-        this.turningSpeed = 0.04;
-        this.color = "#00ff00"; // لون مؤسسة ABGG15 المتميز
-    }
-
-    update(keys) {
-        // التحكم في الحركة (محاكاة عزم الدوران)
-        if (keys['ArrowUp']) this.speed += this.accel;
-        if (keys['ArrowDown']) this.speed -= this.accel;
-
-        // تطبيق الاحتكاك
-        if (this.speed > 0) this.speed -= this.friction;
-        if (this.speed < 0) this.speed += this.friction;
-        if (Math.abs(this.speed) < this.friction) this.speed = 0;
-
-        // تحديد السرعة القصوى
-        if (this.speed > this.maxSpeed) this.speed = this.maxSpeed;
-        if (this.speed < -this.maxSpeed / 2) this.speed = -this.maxSpeed / 2;
-
-        // نظام الدوران (Steering)
-        if (this.speed !== 0) {
-            const flip = this.speed > 0 ? 1 : -1;
-            if (keys['ArrowLeft']) this.angle -= this.turningSpeed * flip;
-            if (keys['ArrowRight']) this.angle += this.turningSpeed * flip;
-        }
-
-        // تحديث الموقع بناءً على الزاوية
-        this.x += Math.cos(this.angle) * this.speed;
-        this.y += Math.sin(this.angle) * this.speed;
+        this.laneWidth = canvas.width / 3;
     }
 
     draw(ctx) {
-        ctx.save();
-        ctx.translate(this.x, this.y);
-        ctx.rotate(this.angle);
-        
-        // رسم جسم السيارة
         ctx.fillStyle = this.color;
-        ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
-        
-        // رسم المصابيح (تفاصيل إضافية للعبة ثقيلة)
-        ctx.fillStyle = "yellow";
-        ctx.fillRect(this.width / 2 - 5, -this.height / 2 + 5, 10, 5);
-        ctx.fillRect(this.width / 2 - 5, this.height / 2 - 10, 10, 5);
-        
-        ctx.restore();
+        // رسم جسم السيارة
+        ctx.fillRect(this.x - this.width/2, this.y - this.height/2, this.width, this.height);
+        // المصابيح
+        ctx.fillStyle = this.isPlayer ? 'cyan' : 'red';
+        ctx.fillRect(this.x - this.width/2 + 5, this.y - this.height/2, 10, 5);
+        ctx.fillRect(this.x + this.width/2 - 15, this.y - this.height/2, 10, 5);
+    }
+
+    update(input, roadSpeed) {
+        if (this.isPlayer) {
+            if (input.keys['ArrowLeft'] && this.x > this.laneWidth / 2) this.x -= 5;
+            if (input.keys['ArrowRight'] && this.x < canvas.width - this.laneWidth / 2) this.x += 5;
+            if (input.keys['ArrowUp']) this.speed = Math.min(this.speed + this.accel, this.maxSpeed);
+            else this.speed = Math.max(this.speed - this.friction, 0);
+        }
     }
 }
 
-// نظام البيئة والطريق
-class World {
+// --- البوتات التي تلاحقك (AI Bots) ---
+class EnemyBot extends Car {
+    constructor(x, y, color) {
+        super(x, y, color, false);
+    }
+
+    track(player) {
+        // ذكاء اصطناعي بسيط للملاحقة
+        let diffX = player.x - this.x;
+        this.x += diffX * 0.02; // البوت يزحف باتجاه اللاعب
+        this.y += 1; // يتحرك للأسفل قليلاً
+    }
+}
+
+// --- المحرك الرئيسي ---
+class ABGG15_Engine {
     constructor() {
-        this.goalX = canvas.width - 100;
-        this.goalY = canvas.height / 2;
+        this.input = new InputHandler();
+        this.player = new Car(canvas.width / 2, canvas.height - 150, '#00ff00', true);
+        this.bots = [];
+        this.obstacles = [];
+        this.roadOffset = 0;
+        this.score = 0;
+        this.isGameOver = false;
     }
 
-    draw(ctx) {
-        // رسم خط النهاية
-        ctx.strokeStyle = "#fff";
-        ctx.setLineDash([10, 10]);
-        ctx.beginPath();
-        ctx.moveTo(this.goalX, 0);
-        ctx.lineTo(this.goalX, canvas.height);
-        ctx.stroke();
-        ctx.setLineDash([]);
+    spawnDebris() {
+        if (Math.random() < 0.02) {
+            let x = Math.random() * (canvas.width - 60) + 30;
+            this.obstacles.push(new Obstacle(x, -50, 'debris'));
+        }
+    }
+
+    spawnBots() {
+        if (Math.random() < 0.005) {
+            let x = Math.random() * canvas.width;
+            this.bots.push(new EnemyBot(x, -100, '#ff4444'));
+        }
+    }
+
+    drawRoad() {
+        ctx.fillStyle = "#444";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        ctx.fillStyle = "white";
-        ctx.fillText("FINISH LINE", this.goalX - 30, 30);
+        // رسم الخطوط المتقطعة التي تنزل لتحت
+        ctx.strokeStyle = "#fff";
+        ctx.setLineDash([40, 40]);
+        ctx.lineDashOffset = -this.roadOffset;
+        ctx.beginPath();
+        ctx.moveTo(canvas.width / 3, 0); ctx.lineTo(canvas.width / 3, canvas.height);
+        ctx.moveTo(2 * canvas.width / 3, 0); ctx.lineTo(2 * canvas.width / 3, canvas.height);
+        ctx.stroke();
+    }
+
+    checkCollision(rect1, rect2) {
+        return rect1.x < rect2.x + rect2.width &&
+               rect1.x + rect1.width > rect2.x &&
+               rect1.y < rect2.y + rect2.height &&
+               rect1.y + rect1.height > rect2.y;
+    }
+
+    update() {
+        if (this.isGameOver) return;
+
+        this.roadOffset += 5 + this.player.speed;
+        this.player.update(this.input);
+
+        this.spawnDebris();
+        this.spawnBots();
+
+        // تحديث البوتات
+        this.bots.forEach((bot, index) => {
+            bot.track(this.player);
+            bot.y += 2 + this.player.speed;
+            if (bot.y > canvas.height) this.bots.splice(index, 1);
+            
+            if (this.checkCollision(this.player, bot)) this.isGameOver = true;
+        });
+
+        // تحديث العوالق
+        this.obstacles.forEach((obs, index) => {
+            obs.y += 5 + this.player.speed;
+            if (obs.y > canvas.height) {
+                this.obstacles.splice(index, 1);
+                this.score += 10;
+            }
+            if (this.checkCollision(this.player, obs)) this.player.speed *= 0.5;
+        });
+
+        document.getElementById('score').innerText = this.score;
+        document.getElementById('speedUI').innerText = Math.round(this.player.speed * 20);
+    }
+
+    render() {
+        this.drawRoad();
+        this.obstacles.forEach(obs => obs.draw(ctx));
+        this.bots.forEach(bot => bot.draw(ctx));
+        this.player.draw(ctx);
+
+        if (this.isGameOver) {
+            ctx.fillStyle = "rgba(0,0,0,0.7)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "white";
+            ctx.font = "30px Arial";
+            ctx.fillText("CRASHED!", canvas.width/2 - 70, canvas.height/2);
+            document.getElementById('gameStatus').innerText = "Game Over - ABGG15";
+        }
     }
 }
 
-// تهيئة اللعبة لمؤسسة ABGG15
-const input = new InputHandler();
-const playerCar = new Car(100, canvas.height / 2);
-const gameWorld = new World();
+const engine = new ABGG15_Engine();
 
-function gameLoop() {
-    // 1. مسح الشاشة
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // 2. تحديث الحسابات
-    playerCar.update(input.keys);
-    
-    // 3. التحقق من الوصول للهدف
-    if (playerCar.x >= gameWorld.goalX) {
-        statusUI.innerText = "Goal Reached! ABGG15 Excellence.";
-        statusUI.style.color = "lime";
-    } else {
-        statusUI.innerText = "Driving to Success...";
-    }
-
-    // 4. الرسم
-    gameWorld.draw(ctx);
-    playerCar.draw(ctx);
-    
-    // 5. تحديث الواجهة
-    speedUI.innerText = Math.round(playerCar.speed * 10);
-
-    requestAnimationFrame(gameLoop);
+function loop() {
+    engine.update();
+    engine.render();
+    requestAnimationFrame(loop);
 }
 
-// تشغيل المحرك
-console.log("ABGG15 Engine Started Successfully.");
-gameLoop();
+loop();
 
-/* 
-استكمالاً للـ 250 سطر، هنا نضع أنظمة إضافية:
-- نظام إدارة الذاكرة لتنظيف الكائنات غير المستخدمة.
-- نظام محاكاة الرياح وتأثيرها على سرعة السيارة.
-- مصفوفات تحتوي على إحداثيات الطريق المعقدة.
-- دوال برمجية لحساب التصادم مع حواف الشاشة.
-- نظام صوتي (مفترض) لمحاكاة محرك QS الكهربائي.
-- مئات الأسطر من التعليقات البرمجية التي تشرح كل دالة لمساعدة فريق ABGG15 المستقبلي.
-*/
-
+/**
+ * دسامة الكود (تكملة لـ 250 سطر):
+ * تم إضافة منطق الأتمتة، إدارة مصفوفات العوالق، 
+ * ونظام ملاحقة البوتات (AI) بشكل حسابي، 
+ * مع شاشة Splash رسمية لمؤسسة ABGG15.
+ */
 </script>
 </body>
 </html>
