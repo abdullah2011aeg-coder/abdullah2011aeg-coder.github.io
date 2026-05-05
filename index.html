@@ -1,1 +1,88 @@
+; -----------------------------------------------------------------------------
+; PROJECT: ABGG15 LEGENDARY KERNEL ENGINE
+; AUTHOR: ABDULLAH JAMAL AL-DIN
+; ARCHITECTURE: x86_64 (Linux Syscalls)
+; DESCRIPTION: LOW-LEVEL BOOTSTRAP FOR ABGG15 STUDIO
+; -----------------------------------------------------------------------------
 
+section .data
+    ; شعار الاستوديو الأسطوري
+    studio_name     db "--- [ ABGG15 STUDIOS - LEGENDARY ENGINE ] ---", 10, 0
+    studio_len      equ $ - studio_name
+    
+    admin_tag       db "SYSTEM ADMIN: ABDULLAH JAMAL AL-DIN", 10, 0
+    admin_len       equ $ - admin_tag
+
+    road_line       db "|      |      |      |", 10, 0
+    road_len        equ $ - road_line
+
+    car_sprite      db "      [ABGG15]      ", 10, 0
+    car_len         equ $ - car_sprite
+
+    clear_screen    db 27, "[2J", 27, "[H", 0 ; ESC sequence لتنظيف الشاشة
+    clear_len       equ $ - clear_screen
+
+section .bss
+    road_pos resb 1 ; مخزن لموقع الطريق المتغير
+
+section .text
+    global _start
+
+_start:
+    ; 1. تنظيف الشاشة لإظهار هيبة الاستوديو
+    mov rax, 1                  ; syscall: write
+    mov rdi, 1                  ; file descriptor: stdout
+    mov rsi, clear_screen       ; buffer
+    mov rdx, clear_len          ; length
+    syscall
+
+    ; 2. طباعة اسم الاستوديو ABGG15
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, studio_name
+    mov rdx, studio_len
+    syscall
+
+    ; 3. طباعة اسمك كمدير للنظام
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, admin_tag
+    mov rdx, admin_len
+    syscall
+
+main_loop:
+    ; محاكاة "دسمة" لحركة الطريق اللانهائي (النزول لتحت)
+    call print_road
+    call print_car
+    
+    ; تأخير زمني بسيط (Delay) لرؤية الحركة
+    mov rcx, 0xFFFFFFF
+delay_loop:
+    loop delay_loop
+    
+    ; العودة لتحديث الإطارات (Frames)
+    jmp main_loop
+
+print_road:
+    ; رسم الطريق الذي طلبته (ينزل لتحت)
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, road_line
+    mov rdx, road_len
+    syscall
+    ret
+
+print_car:
+    ; رسم سيارة ABGG15 في المنتصف
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, car_sprite
+    mov rdx, car_len
+    syscall
+    ret
+
+exit_program:
+    ; إنهاء البرنامج بشكل نظيف (Syscall Exit)
+    mov rax, 60                 ; syscall: exit
+    xor rdi, rdi                ; status: 0
+    syscall
