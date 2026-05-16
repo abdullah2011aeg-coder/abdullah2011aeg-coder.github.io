@@ -2,123 +2,98 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>شطرنج المحترفين - Modern Edition</title>
+    <title>شطرنج المحترفين - نسخة التلميحات الذكية</title>
     <style>
         :root {
-            --bg: #0a0b10;
-            --panel: rgba(23, 25, 35, 0.9);
-            --accent: #00a2ff; /* Glass Blue */
-            --white-sq: #dee3e6;
-            --black-sq: #3b4249;
-            --gold: #d5a021;
+            --bg: #312e2b;
+            --white-sq: #ebecd0;
+            --black-sq: #779556;
+            --hint-color: rgba(0, 0, 0, 0.15);
+            --selected-sq: #f6f669;
         }
 
         body { 
-            background: radial-gradient(circle at center, #1a1c2c 0%, #0a0b10 100%);
+            background-color: var(--bg); 
             color: white; 
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            height: 100vh; margin: 0; overflow: hidden;
+            height: 100vh; margin: 0;
         }
-
-        .glass-header {
-            background: var(--panel);
-            backdrop-filter: blur(10px);
-            padding: 15px 40px;
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .status { font-size: 24px; font-weight: 600; color: var(--accent); letter-spacing: 1px; }
 
         .board-container {
             position: relative;
-            padding: 15px;
-            background: #23272e;
-            border-radius: 12px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+            border: 5px solid #262421;
         }
 
         .board {
             display: grid;
-            grid-template-columns: repeat(8, 68px);
-            grid-template-rows: repeat(8, 68px);
-            border: 4px solid #1a1d23;
+            grid-template-columns: repeat(8, 75px);
+            grid-template-rows: repeat(8, 75px);
         }
 
         .square {
-            width: 68px; height: 68px;
+            width: 75px; height: 75px;
             display: flex; justify-content: center; align-items: center;
-            font-size: 48px; cursor: pointer; transition: all 0.2s;
+            font-size: 58px; cursor: pointer;
             position: relative;
         }
 
-        .light { background: var(--white-sq); }
-        .dark { background: var(--black-sq); }
+        .light { background-color: var(--white-sq); }
+        .dark { background-color: var(--black-sq); }
 
-        /* تأثير التحديد الحديث */
-        .selected { 
-            background: rgba(0, 162, 255, 0.5) !important;
-            box-shadow: inset 0 0 15px var(--accent);
+        .piece { z-index: 10; user-select: none; transition: transform 0.1s; }
+        .white-p { color: #fff; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.4)); }
+        .black-p { color: #000; }
+
+        /* تأثير النقاط الرمادية (التلميحات) */
+        .hint-dot::after {
+            content: '';
+            width: 24px; height: 24px;
+            background-color: var(--hint-color);
+            border-radius: 50%;
+            position: absolute;
+            z-index: 5;
         }
 
-        .hint::after {
-            content: ''; width: 18px; height: 18px;
-            background: rgba(0, 162, 255, 0.3); border-radius: 50%;
+        /* إذا كان المربع فيه قطعة خصم، تظهر حلقة حول القطعة */
+        .hint-capture::after {
+            content: '';
+            width: 65px; height: 65px;
+            border: 6px solid var(--hint-color);
+            border-radius: 50%;
+            position: absolute;
+            z-index: 5;
         }
 
-        .piece {
-            user-select: none; z-index: 10;
-            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.4));
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+        .selected { background-color: var(--selected-sq) !important; }
         
-        .piece:hover { transform: scale(1.15); }
-        .white-p { color: #ffffff; }
-        .black-p { color: #111; }
-
-        .btn-modern {
-            margin-top: 30px;
-            padding: 12px 35px;
-            background: var(--accent);
-            color: white; border: none; border-radius: 50px;
-            font-weight: bold; cursor: pointer;
-            transition: 0.3s; box-shadow: 0 5px 15px rgba(0, 162, 255, 0.4);
+        .check-glow {
+            background: radial-gradient(circle, #ff3b3b 0%, #ff3b3b 45%, transparent 100%) !important;
         }
 
-        .btn-modern:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 162, 255, 0.6); }
-
-        /* تأثير الخطأ */
-        .invalid-move { animation: error-shake 0.4s; background: rgba(255, 59, 59, 0.4) !important; }
-        @keyframes error-shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-6px); }
-            75% { transform: translateX(6px); }
-        }
+        .status { margin-bottom: 15px; font-size: 22px; font-weight: bold; color: #81b64c; }
     </style>
 </head>
 <body>
 
-    <div class="glass-header">
-        <div class="status" id="status">اللاعب الأبيض ⚪</div>
-    </div>
+    <div class="status" id="status">دور الأبيض ⚪</div>
 
     <div class="board-container">
         <div class="board" id="board"></div>
     </div>
 
-    <button class="btn-modern" onclick="location.reload()">إعادة التحدي 🔄</button>
-
     <script>
         const boardDiv = document.getElementById('board');
         const statusTxt = document.getElementById('status');
         let selectedIdx = null;
+        let legalMoves = [];
         let turn = 'w';
 
-        // قطع عصرية - Unicode
-        const piecesMap = { 'p':'♟','r':'♜','n':'♞','b':'♝','q':'♛','k':'♚' };
+        const icons = {
+            'wp':'♙','wr':'♖','wn':'♘','wb':'♗','wq':'♕','wk':'♔',
+            'bp':'♟','br':'♜','bn':'♞','bb':'♝','bq':'♛','bk':'♚'
+        };
 
         let layout = [
             'br','bn','bb','bq','bk','bb','bn','br',
@@ -134,70 +109,86 @@
                 const r = Math.floor(i/8), c = i%8;
                 const sq = document.createElement('div');
                 sq.className = `square ${(r+c)%2===0?'light':'dark'}`;
+                
                 if(p) {
                     const span = document.createElement('span');
                     span.className = `piece ${p[0]==='w'?'white-p':'black-p'}`;
-                    span.innerText = piecesMap[p[1]];
+                    span.innerText = icons[p];
                     sq.appendChild(span);
                 }
+
                 if(selectedIdx === i) sq.classList.add('selected');
-                sq.onclick = () => click(i);
+                
+                // إضافة النقاط الرمادية (التلميحات)
+                if(legalMoves.includes(i)) {
+                    sq.classList.add(layout[i] ? 'hint-capture' : 'hint-dot');
+                }
+
+                sq.onclick = () => handleClick(i);
                 boardDiv.appendChild(sq);
             });
         }
 
-        function click(i) {
+        function handleClick(i) {
             const p = layout[i];
-            if(selectedIdx !== null) {
-                if(isLegal(selectedIdx, i)) {
-                    // قانون صارم: لا يمكن أكل الملك
-                    if(layout[i] && layout[i][1] === 'k') return;
-                    
-                    layout[i] = layout[selectedIdx];
-                    layout[selectedIdx] = null;
-                    turn = turn === 'w' ? 'b' : 'w';
-                    statusTxt.innerText = turn==='w'?'اللاعب الأبيض ⚪':'اللاعب الأسود ⚫';
-                    selectedIdx = null;
-                } else {
-                    const sqs = document.querySelectorAll('.square');
-                    sqs[i].classList.add('invalid-move');
-                    setTimeout(() => sqs[i].classList.remove('invalid-move'), 400);
-                    selectedIdx = null;
-                }
+
+            if(selectedIdx !== null && legalMoves.includes(i)) {
+                // تنفيذ الحركة
+                layout[i] = layout[selectedIdx];
+                layout[selectedIdx] = null;
+                selectedIdx = null;
+                legalMoves = [];
+                turn = turn === 'w' ? 'b' : 'w';
+                statusTxt.innerText = turn === 'w' ? 'دور الأبيض ⚪' : 'دور الأسود ⚫';
             } else if(p && p[0] === turn) {
+                // اختيار قطعة وحساب تلميحاتها
                 selectedIdx = i;
+                calculateLegalMoves(i);
+            } else {
+                selectedIdx = null;
+                legalMoves = [];
             }
             render();
         }
 
-        function isLegal(from, to) {
+        function calculateLegalMoves(from) {
+            legalMoves = [];
+            for(let to = 0; to < 64; to++) {
+                if(checkLogic(from, to)) {
+                    legalMoves.push(to);
+                }
+            }
+        }
+
+        function checkLogic(from, to) {
             const fR = Math.floor(from/8), fC = from%8, tR = Math.floor(to/8), tC = to%8;
             const dR = Math.abs(fR-tR), dC = Math.abs(fC-tC);
             const p = layout[from], target = layout[to];
 
             if(target && target[0] === turn) return false;
+            if(target && target[1] === 'k') return false; // ممنوع أكل الملك
 
             switch(p[1]) {
                 case 'p':
-                    const dir = p[0]==='w'?-1:1;
-                    if(fC===tC && !target) {
-                        if(tR-fR===dir) return true;
-                        if((fR===1||fR===6) && tR-fR===2*dir && !layout[from + 8*dir]) return true;
+                    const dir = p[0] === 'w' ? -1 : 1;
+                    if(fC === tC && !target) {
+                        if(tR-fR === dir) return true;
+                        if((fR===1||fR===6) && tR-fR === 2*dir && !layout[from + 8*dir]) return true;
                     }
-                    return (dC===1 && tR-fR===dir && target);
-                case 'n': return (dR===2 && dC===1) || (dR===1 && dC===2);
-                case 'b': return dR===dC && isPathClear(fR, fC, tR, tC);
-                case 'r': return (fR===tR || fC===tC) && isPathClear(fR, fC, tR, tC);
-                case 'q': return (dR===dC || fR===tR || fC===tC) && isPathClear(fR, fC, tR, tC);
-                case 'k': return dR<=1 && dC<=1;
+                    return (dC === 1 && tR-fR === dir && target);
+                case 'n': return (dR === 2 && dC === 1) || (dR === 1 && dC === 2);
+                case 'b': return dR === dC && isPathClear(fR, fC, tR, tC);
+                case 'r': return (fR === tR || fC === tC) && isPathClear(fR, fC, tR, tC);
+                case 'q': return (dR === dC || fR === tR || fC === tC) && isPathClear(fR, fC, tR, tC);
+                case 'k': return dR <= 1 && dC <= 1;
             }
             return false;
         }
 
         function isPathClear(fR, fC, tR, tC) {
-            const sR = fR===tR?0:(tR>fR?1:-1), sC = fC===tC?0:(tC>fC?1:-1);
-            let r = fR+sR, c = fC+sC;
-            while(r!==tR || c!==tC) { if(layout[r*8+c]) return false; r+=sR; c+=sC; }
+            const sR = fR === tR ? 0 : (tR > fR ? 1 : -1), sC = fC === tC ? 0 : (tC > fC ? 1 : -1);
+            let r = fR + sR, c = fC + sC;
+            while(r !== tR || c !== tC) { if(layout[r*8 + c]) return false; r += sR; c += sC; }
             return true;
         }
 
