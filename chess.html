@@ -88,4 +88,120 @@
             transition: 0.3s; box-shadow: 0 5px 15px rgba(0, 162, 255, 0.4);
         }
 
-        .btn-modern:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,
+        .btn-modern:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 162, 255, 0.6); }
+
+        /* تأثير الخطأ */
+        .invalid-move { animation: error-shake 0.4s; background: rgba(255, 59, 59, 0.4) !important; }
+        @keyframes error-shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="glass-header">
+        <div class="status" id="status">اللاعب الأبيض ⚪</div>
+    </div>
+
+    <div class="board-container">
+        <div class="board" id="board"></div>
+    </div>
+
+    <button class="btn-modern" onclick="location.reload()">إعادة التحدي 🔄</button>
+
+    <script>
+        const boardDiv = document.getElementById('board');
+        const statusTxt = document.getElementById('status');
+        let selectedIdx = null;
+        let turn = 'w';
+
+        // قطع عصرية - Unicode
+        const piecesMap = { 'p':'♟','r':'♜','n':'♞','b':'♝','q':'♛','k':'♚' };
+
+        let layout = [
+            'br','bn','bb','bq','bk','bb','bn','br',
+            'bp','bp','bp','bp','bp','bp','bp','bp',
+            ...Array(32).fill(null),
+            'wp','wp','wp','wp','wp','wp','wp','wp',
+            'wr','wn','wb','wq','wk','wb','wn','wr'
+        ];
+
+        function render() {
+            boardDiv.innerHTML = '';
+            layout.forEach((p, i) => {
+                const r = Math.floor(i/8), c = i%8;
+                const sq = document.createElement('div');
+                sq.className = `square ${(r+c)%2===0?'light':'dark'}`;
+                if(p) {
+                    const span = document.createElement('span');
+                    span.className = `piece ${p[0]==='w'?'white-p':'black-p'}`;
+                    span.innerText = piecesMap[p[1]];
+                    sq.appendChild(span);
+                }
+                if(selectedIdx === i) sq.classList.add('selected');
+                sq.onclick = () => click(i);
+                boardDiv.appendChild(sq);
+            });
+        }
+
+        function click(i) {
+            const p = layout[i];
+            if(selectedIdx !== null) {
+                if(isLegal(selectedIdx, i)) {
+                    // قانون صارم: لا يمكن أكل الملك
+                    if(layout[i] && layout[i][1] === 'k') return;
+                    
+                    layout[i] = layout[selectedIdx];
+                    layout[selectedIdx] = null;
+                    turn = turn === 'w' ? 'b' : 'w';
+                    statusTxt.innerText = turn==='w'?'اللاعب الأبيض ⚪':'اللاعب الأسود ⚫';
+                    selectedIdx = null;
+                } else {
+                    const sqs = document.querySelectorAll('.square');
+                    sqs[i].classList.add('invalid-move');
+                    setTimeout(() => sqs[i].classList.remove('invalid-move'), 400);
+                    selectedIdx = null;
+                }
+            } else if(p && p[0] === turn) {
+                selectedIdx = i;
+            }
+            render();
+        }
+
+        function isLegal(from, to) {
+            const fR = Math.floor(from/8), fC = from%8, tR = Math.floor(to/8), tC = to%8;
+            const dR = Math.abs(fR-tR), dC = Math.abs(fC-tC);
+            const p = layout[from], target = layout[to];
+
+            if(target && target[0] === turn) return false;
+
+            switch(p[1]) {
+                case 'p':
+                    const dir = p[0]==='w'?-1:1;
+                    if(fC===tC && !target) {
+                        if(tR-fR===dir) return true;
+                        if((fR===1||fR===6) && tR-fR===2*dir && !layout[from + 8*dir]) return true;
+                    }
+                    return (dC===1 && tR-fR===dir && target);
+                case 'n': return (dR===2 && dC===1) || (dR===1 && dC===2);
+                case 'b': return dR===dC && isPathClear(fR, fC, tR, tC);
+                case 'r': return (fR===tR || fC===tC) && isPathClear(fR, fC, tR, tC);
+                case 'q': return (dR===dC || fR===tR || fC===tC) && isPathClear(fR, fC, tR, tC);
+                case 'k': return dR<=1 && dC<=1;
+            }
+            return false;
+        }
+
+        function isPathClear(fR, fC, tR, tC) {
+            const sR = fR===tR?0:(tR>fR?1:-1), sC = fC===tC?0:(tC>fC?1:-1);
+            let r = fR+sR, c = fC+sC;
+            while(r!==tR || c!==tC) { if(layout[r*8+c]) return false; r+=sR; c+=sC; }
+            return true;
+        }
+
+        render();
+    </script>
+</body>
+</html>
