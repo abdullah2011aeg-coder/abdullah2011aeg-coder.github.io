@@ -1,159 +1,101 @@
-<script>
-    const boardElement = document.getElementById('board');
-    const adviceBox = document.getElementById('ai-advice');
-    const historyElement = document.getElementById('move-history');
-    let selectedSquare = null;
-    let turn = 'white';
-    let moveHistory = [];
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>شطرنج المحترفين الذكي</title>
+    <style>
+        body { background: #1a1a1a; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .status { margin-bottom: 10px; font-size: 24px; color: #d5a021; }
+        .board { display: grid; grid-template-columns: repeat(8, 60px); grid-template-rows: repeat(8, 60px); border: 5px solid #333; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .square { width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 40px; cursor: pointer; transition: 0.2s; }
+        .white-sq { background: #ebecd0; }
+        .black-sq { background: #779556; }
+        .selected { background: #f3cf2b !important; }
+        .valid-move { background: rgba(133, 243, 43, 0.6) !important; box-shadow: inset 0 0 10px #000; }
+        .piece { transition: transform 0.3s ease; user-select: none; }
+        .controls { margin-top: 20px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: #d5a021; border: none; border-radius: 5px; font-weight: bold; }
+    </style>
+</head>
+<body>
 
-    const piecesSVG = {
-        w_pawn: 'https://upload.wikimedia.org/wikipedia/commons/4/45/Chess_plt45.svg',
-        w_knight: 'https://upload.wikimedia.org/wikipedia/commons/7/70/Chess_nlt45.svg',
-        w_bishop: 'https://upload.wikimedia.org/wikipedia/commons/b/b1/Chess_blt45.svg',
-        w_rook: 'https://upload.wikimedia.org/wikipedia/commons/7/72/Chess_rlt45.svg',
-        w_queen: 'https://upload.wikimedia.org/wikipedia/commons/1/15/Chess_qlt45.svg',
-        w_king: 'https://upload.wikimedia.org/wikipedia/commons/4/42/Chess_klt45.svg',
-        b_pawn: 'https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg',
-        b_knight: 'https://upload.wikimedia.org/wikipedia/commons/e/ef/Chess_ndt45.svg',
-        b_bishop: 'https://upload.wikimedia.org/wikipedia/commons/9/8b/Chess_bdt45.svg',
-        b_rook: 'https://upload.wikimedia.org/wikipedia/commons/f/ff/Chess_rdt45.svg',
-        b_queen: 'https://upload.wikimedia.org/wikipedia/commons/4/47/Chess_qdt45.svg',
-        b_king: 'https://upload.wikimedia.org/wikipedia/commons/f/f0/Chess_kdt45.svg'
-    };
+    <div class="status" id="status">دور اللاعب: الأبيض ⚪</div>
+    <div class="board" id="board"></div>
+    <div class="controls">
+        <button onclick="location.reload()">إعادة اللعبة 🔄</button>
+        <button onclick="window.location.href='index.html'">الرجوع لـ X-O 🔙</button>
+    </div>
 
-    const initialPosition = [
-        ['b_rook', 'b_knight', 'b_bishop', 'b_queen', 'b_king', 'b_bishop', 'b_knight', 'b_rook'],
-        ['b_pawn', 'b_pawn', 'b_pawn', 'b_pawn', 'b_pawn', 'b_pawn', 'b_pawn', 'b_pawn'],
-        Array(8).fill(null), Array(8).fill(null), Array(8).fill(null), Array(8).fill(null),
-        ['w_pawn', 'w_pawn', 'w_pawn', 'w_pawn', 'w_pawn', 'w_pawn', 'w_pawn', 'w_pawn'],
-        ['w_rook', 'w_knight', 'w_bishop', 'w_queen', 'w_king', 'w_bishop', 'w_knight', 'w_rook']
-    ].flat();
+    <script>
+        const boardElement = document.getElementById('board');
+        const statusElement = document.getElementById('status');
+        let selectedSquare = null;
+        let turn = 'w';
 
-    function createBoard() {
-        boardElement.innerHTML = '';
-        for (let i = 0; i < 64; i++) {
-            const row = Math.floor(i / 8);
-            const col = i % 8;
-            const square = document.createElement('div');
-            square.className = `square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
-            square.dataset.index = i;
-            square.dataset.row = row;
-            square.dataset.col = col;
-            square.dataset.coord = String.fromCharCode(97 + col) + (8 - row);
-            
-            if (initialPosition[i]) {
-                const piece = document.createElement('img');
-                piece.src = piecesSVG[initialPosition[i]];
-                piece.className = 'piece';
-                piece.dataset.type = initialPosition[i];
-                square.appendChild(piece);
+        // قطع الشطرنج باستخدام الرموز لضمان عدم ظهور شاشة بيضاء
+        const pieces = {
+            'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟',
+            'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙'
+        };
+
+        let boardLayout = [
+            ['r','n','b','q','k','b','n','r'],
+            ['p','p','p','p','p','p','p','p'],
+            ['','','','','','','',''],
+            ['','','','','','','',''],
+            ['','','','','','','',''],
+            ['','','','','','','',''],
+            ['P','P','P','P','P','P','P','P'],
+            ['R','N','B','Q','K','B','N','R']
+        ];
+
+        function createBoard() {
+            boardElement.innerHTML = '';
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const square = document.createElement('div');
+                    square.className = `square ${(r + c) % 2 === 0 ? 'white-sq' : 'black-sq'}`;
+                    square.dataset.row = r;
+                    square.dataset.col = c;
+                    
+                    const piece = boardLayout[r][c];
+                    if (piece) {
+                        const pieceDiv = document.createElement('div');
+                        pieceDiv.className = 'piece';
+                        pieceDiv.innerText = pieces[piece];
+                        pieceDiv.style.color = piece === piece.toUpperCase() ? "white" : "black";
+                        square.appendChild(pieceDiv);
+                    }
+
+                    square.onclick = () => handleSquareClick(r, c);
+                    boardElement.appendChild(square);
+                }
             }
-            square.onclick = () => handleSquareClick(square);
-            boardElement.appendChild(square);
         }
-    }
 
-    function handleSquareClick(square) {
-        const piece = square.querySelector('.piece');
-        
-        if (selectedSquare) {
-            if (square === selectedSquare) { deselect(); return; }
+        function handleSquareClick(r, c) {
+            const clickedPiece = boardLayout[r][c];
             
-            const fromIdx = parseInt(selectedSquare.dataset.index);
-            const toIdx = parseInt(square.dataset.index);
-            const pieceType = selectedSquare.querySelector('.piece').dataset.type;
-
-            if (isLegalMove(pieceType, fromIdx, toIdx)) {
-                executeMove(selectedSquare, square);
+            if (selectedSquare) {
+                const [sr, sc] = selectedSquare;
+                // تنفيذ الحركة
+                boardLayout[r][c] = boardLayout[sr][sc];
+                boardLayout[sr][sc] = '';
+                selectedSquare = null;
+                turn = turn === 'w' ? 'b' : 'w';
+                statusElement.innerText = turn === 'w' ? "دور اللاعب: الأبيض ⚪" : "دور اللاعب: الأسود ⚫";
+                createBoard();
             } else {
-                // تلميح تعليمي عند الخطأ
-                square.classList.add('blunder');
-                adviceBox.innerText = "هذه الحركة غير قانونية! تذكر قواعد حركة القطعة المختار.";
-                setTimeout(() => square.classList.remove('blunder'), 500);
-                deselect();
-            }
-        } else {
-            if (piece && piece.dataset.type.startsWith(turn[0])) {
-                selectSquare(square);
+                if (clickedPiece && ((turn === 'w' && clickedPiece === clickedPiece.toUpperCase()) || (turn === 'b' && clickedPiece === clickedPiece.toLowerCase()))) {
+                    selectedSquare = [r, c];
+                    createBoard();
+                    const idx = r * 8 + c;
+                    boardElement.children[idx].classList.add('selected');
+                }
             }
         }
-    }
 
-    // محرك القواعد المبسط (Logic)
-    function isLegalMove(type, from, to) {
-        const fR = Math.floor(from / 8), fC = from % 8;
-        const tR = Math.floor(to / 8), tC = to % 8;
-        const diffR = Math.abs(fR - tR), diffC = Math.abs(fC - tC);
-        
-        const targetPiece = document.querySelector(`[data-index="${to}"] .piece`);
-        if (targetPiece && targetPiece.dataset.type.startsWith(turn[0])) return false;
-
-        if (type.includes('knight')) {
-            return (diffR === 2 && diffC === 1) || (diffR === 1 && diffC === 2);
-        }
-        if (type.includes('rook')) {
-            return fR === tR || fC === tC;
-        }
-        if (type.includes('bishop')) {
-            return diffR === diffC;
-        }
-        if (type.includes('queen')) {
-            return diffR === diffC || fR === tR || fC === tC;
-        }
-        if (type.includes('pawn')) {
-            const dir = type.startsWith('w') ? -1 : 1;
-            if (fC === tC && !targetPiece) {
-                if (tR - fR === dir) return true;
-                if ((fR === 6 || fR === 1) && tR - fR === 2 * dir) return true;
-            }
-            if (diffC === 1 && tR - fR === dir && targetPiece) return true;
-            return false;
-        }
-        return true; // للملك حالياً
-    }
-
-    function selectSquare(square) {
-        deselect();
-        selectedSquare = square;
-        square.style.background = "rgba(133, 243, 43, 0.5)";
-        adviceBox.innerText = "تم اختيار القطعة. القفز للمربعات المضيئة بالأخضر هو الأفضل!";
-    }
-
-    function deselect() {
-        if (selectedSquare) selectedSquare.style.background = "";
-        selectedSquare = null;
-    }
-
-    function executeMove(from, to) {
-        const piece = from.querySelector('.piece');
-        const targetPiece = to.querySelector('.piece');
-        
-        // حساب الأنيميشن
-        const fRect = from.getBoundingClientRect(), tRect = to.getBoundingClientRect();
-        piece.style.setProperty('--tx', `${tRect.left - fRect.left}px`);
-        piece.style.setProperty('--ty', `${tRect.top - fRect.top}px`);
-        piece.classList.add('moving');
-
-        setTimeout(() => {
-            piece.classList.remove('moving');
-            if (targetPiece) to.removeChild(targetPiece);
-            to.appendChild(piece);
-            
-            // تسجيل الحركة
-            const moveNote = document.createElement('div');
-            moveNote.innerText = `${turn.toUpperCase()}: ${from.dataset.coord} → ${to.dataset.coord}`;
-            historyElement.prepend(moveNote);
-            
-            // تلميح "المعلم"
-            to.classList.add('best-move');
-            setTimeout(() => to.classList.remove('best-move'), 1000);
-            adviceBox.innerText = "حركة ممتازة! لقد قمت بتطوير وضعك في اللوحة.";
-            
-            turn = turn === 'white' ? 'black' : 'white';
-            document.getElementById('turn-indicator').innerText = `دور: ${turn === 'white' ? 'الأبيض' : 'الأسود'}`;
-            deselect();
-        }, 500);
-    }
-
-    createBoard();
-</script>
+        createBoard();
+    </script>
+</body>
+</html>
