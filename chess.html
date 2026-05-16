@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>شطرنج المحترفين - Chess.com Neo</title>
+    <title>شطرنج المحترفين - الإصدار النهائي</title>
     <style>
         :root {
             --bg: #312e2b;
@@ -13,18 +13,19 @@
         }
 
         body { 
-            background-color: var(--bg); 
-            margin: 0; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            height: 100vh; width: 100vw; overflow: hidden; font-family: sans-serif;
+            background-color: var(--bg); margin: 0; 
+            display: flex; align-items: center; justify-content: center;
+            height: 100vh; overflow: hidden; font-family: 'Segoe UI', Tahoma, sans-serif;
         }
 
-        /* الحجم التلقائي ليناسب الشاشة دون F11 */
+        /* حاوية الرقعة مع زوايا منحنية كما في Chess.com */
         .board-wrapper {
-            width: 90vmin; height: 90vmin;
-            max-width: 600px; max-height: 600px;
             position: relative;
-            box-shadow: 0 10px 50px rgba(0,0,0,0.5);
+            width: 92vmin; height: 92vmin;
+            max-width: 750px; max-height: 750px;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.6);
         }
 
         .board {
@@ -38,57 +39,68 @@
             position: relative;
             display: flex; justify-content: center; align-items: center;
             cursor: pointer;
+            user-select: none;
         }
 
         .light { background-color: var(--white-sq); }
         .dark { background-color: var(--black-sq); }
 
-        /* أشكال القطع الحديثة (Neo) */
+        /* تنسيق الإحداثيات (الأرقام والحروف) داخل المربعات */
+        .square::before {
+            position: absolute; font-size: 1.5vmin; font-weight: bold; z-index: 1;
+        }
+        .square[data-r]::before { content: attr(data-r); left: 3px; top: 1px; }
+        .square[data-c]::before { content: attr(data-c); right: 3px; bottom: 1px; }
+        
+        .light::before { color: var(--black-sq); }
+        .dark::before { color: var(--white-sq); }
+
+        /* قطع الشطرنج Neo */
         .piece {
-            width: 90%; height: 90%;
+            width: 95%; height: 95%;
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
             z-index: 10;
         }
 
-        /* روابط صور القطع الاحترافية */
-        .wp { background-image: url('https://upload.wikimedia.org/wikipedia/commons/4/45/Chess_plt45.svg'); }
-        .wr { background-image: url('https://upload.wikimedia.org/wikipedia/commons/7/72/Chess_rlt45.svg'); }
-        .wn { background-image: url('https://upload.wikimedia.org/wikipedia/commons/7/70/Chess_nlt45.svg'); }
-        .wb { background-image: url('https://upload.wikimedia.org/wikipedia/commons/b/b1/Chess_blt45.svg'); }
-        .wq { background-image: url('https://upload.wikimedia.org/wikipedia/commons/1/15/Chess_qlt45.svg'); }
-        .wk { background-image: url('https://upload.wikimedia.org/wikipedia/commons/4/42/Chess_klt45.svg'); }
+        /* روابط القطع من سورس Chess.com الرسمي */
+        .wp { background-image: url('https://www.chess.com/chess-themes/pieces/neo/150/wp.png'); }
+        .wr { background-image: url('https://www.chess.com/chess-themes/pieces/neo/150/wr.png'); }
+        .wn { background-image: url('https://www.chess.com/chess-themes/pieces/neo/150/wn.png'); }
+        .wb { background-image: url('https://www.chess.com/chess-themes/pieces/neo/150/wb.png'); }
+        .wq { background-image: url('https://www.chess.com/chess-themes/pieces/neo/150/wq.png'); }
+        .wk { background-image: url('https://www.chess.com/chess-themes/pieces/neo/150/wk.png'); }
 
-        .bp { background-image: url('https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg'); }
-        .br { background-image: url('https://upload.wikimedia.org/wikipedia/commons/f/ff/Chess_rdt45.svg'); }
-        .bn { background-image: url('https://upload.wikimedia.org/wikipedia/commons/e/ef/Chess_ndt45.svg'); }
-        .bb { background-image: url('https://upload.wikimedia.org/wikipedia/commons/9/98/Chess_bdt45.svg'); }
-        .bq { background-image: url('https://upload.wikimedia.org/wikipedia/commons/4/47/Chess_qdt45.svg'); }
-        .bk { background-image: url('https://upload.wikimedia.org/wikipedia/commons/f/f0/Chess_kdt45.svg'); }
+        .bp { background-image: url('https://www.chess.com/chess-themes/pieces/neo/150/bp.png'); }
+        .br { background-image: url('https://www.chess.com/chess-themes/pieces/neo/150/br.png'); }
+        .bn { background-image: url('https://www.chess.com/chess-themes/pieces/neo/150/bn.png'); }
+        .bb { background-image: url('https://www.chess.com/chess-themes/pieces/neo/150/bb.png'); }
+        .bq { background-image: url('https://www.chess.com/chess-themes/pieces/neo/150/bq.png'); }
+        .bk { background-image: url('https://www.chess.com/chess-themes/pieces/neo/150/bk.png'); }
 
         .selected { background-color: var(--highlight) !important; }
+        
+        /* تلميحات الحركة (النقاط) */
         .hint-dot::after {
-            content: ''; width: 25%; height: 25%;
+            content: ''; width: 26%; height: 26%;
             background: var(--hint); border-radius: 50%;
         }
         .hint-capture::after {
-            content: ''; width: 80%; height: 80%;
-            border: 6px solid var(--hint); border-radius: 50%;
+            content: ''; width: 88%; height: 88%;
+            border: 0.8vmin solid var(--hint); border-radius: 50%;
+            position: absolute;
         }
-
-        .status { color: #81b64c; font-size: 1.5rem; margin-bottom: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="status" id="status">دور الأبيض</div>
+
     <div class="board-wrapper">
         <div class="board" id="board"></div>
     </div>
 
     <script>
         const boardDiv = document.getElementById('board');
-        const statusTxt = document.getElementById('status');
         let selectedIdx = null, legalMoves = [], turn = 'w';
 
         let layout = [
@@ -101,30 +113,36 @@
 
         function render() {
             boardDiv.innerHTML = '';
-            layout.forEach((p, i) => {
+            for(let i=0; i<64; i++) {
+                const r = Math.floor(i/8), c = i%8;
                 const sq = document.createElement('div');
-                sq.className = `square ${(Math.floor(i/8)+i%8)%2===0?'light':'dark'}`;
-                if(p) {
-                    const div = document.createElement('div');
-                    div.className = `piece ${p}`;
-                    sq.appendChild(div);
+                sq.className = `square ${(r+c)%2===0?'light':'dark'}`;
+                
+                // إظهار الإحداثيات كما في الصورة الأصلية
+                if(c === 0) sq.setAttribute('data-r', 8-r);
+                if(r === 7) sq.setAttribute('data-c', String.fromCharCode(97+c));
+
+                if(layout[i]) {
+                    const p = document.createElement('div');
+                    p.className = `piece ${layout[i]}`;
+                    sq.appendChild(p);
                 }
+
                 if(selectedIdx === i) sq.classList.add('selected');
-                if(legalMoves.includes(i)) sq.classList.add(layout[i]?'hint-capture':'hint-dot');
+                if(legalMoves.includes(i)) sq.classList.add(layout[i] ? 'hint-capture' : 'hint-dot');
+
                 sq.onclick = () => handleClick(i);
                 boardDiv.appendChild(sq);
-            });
+            }
         }
 
         function handleClick(i) {
-            const p = layout[i];
             if(selectedIdx !== null && legalMoves.includes(i)) {
                 layout[i] = layout[selectedIdx];
                 layout[selectedIdx] = null;
                 selectedIdx = null; legalMoves = [];
                 turn = turn === 'w' ? 'b' : 'w';
-                statusTxt.innerText = turn==='w'?'دور الأبيض':'دور الأسود';
-            } else if(p && p[0] === turn) {
+            } else if(layout[i] && layout[i][0] === turn) {
                 selectedIdx = i;
                 calculateMoves(i);
             } else {
@@ -135,38 +153,41 @@
 
         function calculateMoves(from) {
             legalMoves = [];
-            for(let to=0; to<64; to++) if(isLegal(from, to)) legalMoves.push(to);
+            for(let to=0; to<64; to++) {
+                if(checkLogic(from, to)) legalMoves.push(to);
+            }
         }
 
-        function isLegal(from, to) {
-            const fR=Math.floor(from/8), fC=from%8, tR=Math.floor(to/8), tC=to%8;
-            const dR=Math.abs(fR-tR), dC=Math.abs(fC-tC), p=layout[from], target=layout[to];
-            if(target && target[0]===turn) return false;
-            if(target && target[1]==='k') return false;
+        function checkLogic(from, to) {
+            const fR = Math.floor(from/8), fC = from%8, tR = Math.floor(to/8), tC = to%8;
+            const dR = Math.abs(fR-tR), dC = Math.abs(fC-tC), p = layout[from], target = layout[to];
+            if(target && target[0] === turn) return false;
+            if(target && target[1] === 'k') return false;
 
             switch(p[1]) {
-                case 'p': 
-                    const dir = p[0]==='w'?-1:1;
-                    if(fC===tC && !target) {
-                        if(tR-fR===dir) return true;
-                        if((fR===1||fR===6) && tR-fR===2*dir && !layout[from+8*dir]) return true;
+                case 'p':
+                    const dir = p[0] === 'w' ? -1 : 1;
+                    if(fC === tC && !target) {
+                        if(tR-fR === dir) return true;
+                        if((fR===1||fR===6) && tR-fR === 2*dir && !layout[from + 8*dir]) return true;
                     }
-                    return (dC===1 && tR-fR===dir && target);
-                case 'n': return (dR===2 && dC===1) || (dR===1 && dC===2);
-                case 'b': return dR===dC && isPathClear(fR,fC,tR,tC);
-                case 'r': return (fR===tR || fC===tC) && isPathClear(fR,fC,tR,tC);
-                case 'q': return (dR===dC || fR===tR || fC===tC) && isPathClear(fR,fC,tR,tC);
-                case 'k': return dR<=1 && dC<=1;
+                    return (dC === 1 && tR-fR === dir && target);
+                case 'n': return (dR === 2 && dC === 1) || (dR === 1 && dC === 2);
+                case 'b': return dR === dC && isClear(fR, fC, tR, tC);
+                case 'r': return (fR === tR || fC === tC) && isClear(fR, fC, tR, tC);
+                case 'q': return (dR === dC || fR === tR || fC === tC) && isClear(fR, fC, tR, tC);
+                case 'k': return dR <= 1 && dC <= 1;
             }
             return false;
         }
 
-        function isPathClear(fR,fC,tR,tC) {
-            const sR=fR===tR?0:tR>fR?1:-1, sC=fC===tC?0:tC>fC?1:-1;
-            let r=fR+sR, c=fC+sC;
-            while(r!==tR || c!==tC) { if(layout[r*8+c]) return false; r+=sR; c+=sC; }
+        function isClear(fR, fC, tR, tC) {
+            const sR = fR === tR ? 0 : (tR > fR ? 1 : -1), sC = fC === tC ? 0 : (tC > fC ? 1 : -1);
+            let r = fR + sR, c = fC + sC;
+            while(r !== tR || c !== tC) { if(layout[r*8 + c]) return false; r += sR; c += sC; }
             return true;
         }
+
         render();
     </script>
 </body>
