@@ -2,159 +2,107 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ABGG15 - شطرنج المحترفين</title>
-    
+    <title>ABGG15 - عالم الاحتراف</title>
     <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 
     <style>
-        body {
-            background-color: #262421;
-            color: #bababa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 0;
-            height: 100vh;
-        }
+        body { background-color: #262421; color: #bababa; margin: 0; display: flex; height: 100vh; font-family: sans-serif; overflow: hidden; }
+        
+        /* القائمة اليمنى (Sidebar) */
+        .sidebar { width: 140px; background-color: #21201d; display: flex; flex-direction: column; align-items: center; padding-top: 20px; border-left: 1px solid #312e2b; }
+        .sidebar-item { padding: 15px 0; text-align: center; width: 100%; cursor: pointer; font-size: 14px; }
+        .sidebar-item:hover { background-color: #2b2926; color: #fff; }
+        .logo-box { color: #81b64c; font-weight: bold; font-size: 20px; margin-bottom: 30px; }
 
-        .header {
-            width: 100%;
-            background-color: #21201d;
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-        }
+        /* منطقة اللعب الوسطى */
+        .game-area { flex: 1; display: flex; justify-content: center; align-items: center; padding: 20px; position: relative; }
+        #board-container { width: 85vmin; height: 85vmin; max-width: 650px; max-height: 650px; box-shadow: 0 10px 50px rgba(0,0,0,0.7); }
+        
+        /* القائمة اليسرى (التحليل) */
+        .analysis-panel { width: 320px; background-color: #262421; padding: 15px; border-right: 1px solid #312e2b; display: flex; flex-direction: column; }
+        .header-title { color: #fff; font-size: 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+        
+        .btn-main { background-color: #81b64c; color: white; border: none; padding: 15px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-bottom: 10px; border-bottom: 4px solid #5d8a32; }
+        .btn-secondary { background-color: #312e2b; color: #bababa; border: none; padding: 12px; border-radius: 5px; cursor: pointer; margin-bottom: 8px; text-align: right; }
+        .btn-secondary:hover { background-color: #3c3934; }
 
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #81b64c;
-        }
-
-        .main-container {
-            display: flex;
-            gap: 20px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        #myBoard {
-            width: 600px;
-            max-width: 90vw;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .side-panel {
-            width: 300px;
-            background-color: #21201d;
-            border-radius: 5px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .status-box {
-            background-color: #2b2926;
-            padding: 10px;
-            border-radius: 3px;
-            text-align: center;
-        }
-
-        .btn-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        button {
-            background-color: #312e2b;
-            color: #fff;
-            border: none;
-            padding: 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.2s;
-            border-bottom: 3px solid #1a1917;
-        }
-
-        button:hover {
-            background-color: #3c3934;
-        }
-
-        .btn-primary {
-            background-color: #81b64c;
-            border-bottom: 3px solid #5d8a32;
-        }
-
-        .btn-primary:hover {
-            background-color: #95c95d;
-        }
-
-        /* تخصيص شكل مربعات Chess.com */
+        /* ألوان الرقعة الاحترافية */
         .white-1e1d7 { background-color: #ebecd0 !important; }
         .black-3c85d { background-color: #779556 !important; }
-        .highlight-mm { box-shadow: inset 0 0 3px 3px yellow; }
+        
+        .user-info { display: flex; align-items: center; gap: 10px; padding: 10px 0; font-size: 14px; }
+        .user-avatar { width: 35px; height: 35px; background: #454241; border-radius: 3px; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div class="logo">ABGG15 CHESS</div>
-        <div>أهلاً بك في عالم الاحتراف</div>
+    <div class="sidebar">
+        <div class="logo-box">ABGG15</div>
+        <div class="sidebar-item">♟ العب</div>
+        <div class="sidebar-item">🧩 الألغاز</div>
+        <div class="sidebar-item">🎓 تعلّم</div>
+        <div class="sidebar-item">⚔️ تدرب</div>
+        <div class="sidebar-item">📺 مشاهدة</div>
+        <div class="sidebar-item">👥 المجتمع</div>
     </div>
 
-    <div class="main-container">
-        <div id="myBoard"></div>
+    <div class="analysis-panel">
+        <div class="header-title">🔍 تحليل</div>
+        <button class="btn-secondary">📁 صف</button>
+        <button class="btn-secondary">🧭 استكشف</button>
+        <button class="btn-secondary">📚 مجموعات المباريات</button>
+        
+        <div style="flex: 1; background: #21201d; margin: 15px 0; border-radius: 5px; padding: 10px; font-size: 12px;">
+            الصق FEN أو PGN هنا لتحليل المباراة...
+        </div>
 
-        <div class="side-panel">
-            <div class="status-box">
-                <strong>الحالة:</strong> <span id="status">دور الأبيض</span>
-            </div>
-            
-            <div class="btn-group">
-                <button class="btn-primary" onclick="resetGame()">مباراة جديدة</button>
-                <button onclick="undoMove()">↩ تراجع عن الحركة</button>
-                <button onclick="board.flip()">🔄 قلب الرقعة</button>
-            </div>
+        <button class="btn-main" onclick="location.reload()">مباراة جديدة</button>
+        <button class="btn-secondary" onclick="game.undo(); board.position(game.fen());">↩ تراجع عن الحركة</button>
+    </div>
 
-            <div style="margin-top: 20px;">
-                <label>تغيير الطور:</label>
-                <select id="mode" style="width: 100%; padding: 5px; background: #312e2b; color: white;">
-                    <option>لعب كلاسيكي</option>
-                    <option>تحليل حركات</option>
-                    <option>تدريب (ألغاز)</option>
-                </select>
-            </div>
+    <div class="game-area">
+        <div style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%);">
+            <div class="user-info"><div class="user-avatar"></div> <strong>الأسود</strong></div>
+        </div>
+        
+        <div id="board-container"></div>
+
+        <div style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);">
+            <div class="user-info"><div class="user-avatar" style="background:#fff"></div> <strong>الأبيض (أنت)</strong></div>
         </div>
     </div>
 
-    <script>
-        var board = null;
-        var game = new Chess();
-        var $status = $('#status');
+<script>
+    var board = null;
+    var game = new Chess();
 
-        function onDragStart (source, piece, position, orientation) {
-            // لا تسمح بتحريك القطع إذا انتهت اللعبة
-            if (game.game_over()) return false;
+    function onDragStart (source, piece) {
+        if (game.game_over()) return false;
+        if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+            (game.turn() === 'b' && piece.search(/^w/) !== -1)) return false;
+    }
 
-            // لا تسمح بتحريك قطع الخصم
-            if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
-                (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
-                return false;
-            }
-        }
+    function onDrop (source, target) {
+        var move = game.move({ from: source, to: target, promotion: 'q' });
+        if (move === null) return 'snapback';
+    }
 
-        function onDrop (source, target) {
-            // محاولة تنفيذ الحركة
-            var move = game.move({
-                from: source,
+    function onSnapEnd () { board.position(game.fen()); }
+
+    var config = {
+        draggable: true,
+        position: 'start',
+        onDragStart: onDragStart,
+        onDrop: onDrop,
+        onSnapEnd: onSnapEnd,
+        pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
+    };
+
+    board = Chessboard('board-container', config);
+    $(window).resize(board.resize);
+</script>
+</body>
+</html>
