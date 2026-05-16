@@ -1,0 +1,159 @@
+<script>
+    const boardElement = document.getElementById('board');
+    const adviceBox = document.getElementById('ai-advice');
+    const historyElement = document.getElementById('move-history');
+    let selectedSquare = null;
+    let turn = 'white';
+    let moveHistory = [];
+
+    const piecesSVG = {
+        w_pawn: 'https://upload.wikimedia.org/wikipedia/commons/4/45/Chess_plt45.svg',
+        w_knight: 'https://upload.wikimedia.org/wikipedia/commons/7/70/Chess_nlt45.svg',
+        w_bishop: 'https://upload.wikimedia.org/wikipedia/commons/b/b1/Chess_blt45.svg',
+        w_rook: 'https://upload.wikimedia.org/wikipedia/commons/7/72/Chess_rlt45.svg',
+        w_queen: 'https://upload.wikimedia.org/wikipedia/commons/1/15/Chess_qlt45.svg',
+        w_king: 'https://upload.wikimedia.org/wikipedia/commons/4/42/Chess_klt45.svg',
+        b_pawn: 'https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg',
+        b_knight: 'https://upload.wikimedia.org/wikipedia/commons/e/ef/Chess_ndt45.svg',
+        b_bishop: 'https://upload.wikimedia.org/wikipedia/commons/9/8b/Chess_bdt45.svg',
+        b_rook: 'https://upload.wikimedia.org/wikipedia/commons/f/ff/Chess_rdt45.svg',
+        b_queen: 'https://upload.wikimedia.org/wikipedia/commons/4/47/Chess_qdt45.svg',
+        b_king: 'https://upload.wikimedia.org/wikipedia/commons/f/f0/Chess_kdt45.svg'
+    };
+
+    const initialPosition = [
+        ['b_rook', 'b_knight', 'b_bishop', 'b_queen', 'b_king', 'b_bishop', 'b_knight', 'b_rook'],
+        ['b_pawn', 'b_pawn', 'b_pawn', 'b_pawn', 'b_pawn', 'b_pawn', 'b_pawn', 'b_pawn'],
+        Array(8).fill(null), Array(8).fill(null), Array(8).fill(null), Array(8).fill(null),
+        ['w_pawn', 'w_pawn', 'w_pawn', 'w_pawn', 'w_pawn', 'w_pawn', 'w_pawn', 'w_pawn'],
+        ['w_rook', 'w_knight', 'w_bishop', 'w_queen', 'w_king', 'w_bishop', 'w_knight', 'w_rook']
+    ].flat();
+
+    function createBoard() {
+        boardElement.innerHTML = '';
+        for (let i = 0; i < 64; i++) {
+            const row = Math.floor(i / 8);
+            const col = i % 8;
+            const square = document.createElement('div');
+            square.className = `square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
+            square.dataset.index = i;
+            square.dataset.row = row;
+            square.dataset.col = col;
+            square.dataset.coord = String.fromCharCode(97 + col) + (8 - row);
+            
+            if (initialPosition[i]) {
+                const piece = document.createElement('img');
+                piece.src = piecesSVG[initialPosition[i]];
+                piece.className = 'piece';
+                piece.dataset.type = initialPosition[i];
+                square.appendChild(piece);
+            }
+            square.onclick = () => handleSquareClick(square);
+            boardElement.appendChild(square);
+        }
+    }
+
+    function handleSquareClick(square) {
+        const piece = square.querySelector('.piece');
+        
+        if (selectedSquare) {
+            if (square === selectedSquare) { deselect(); return; }
+            
+            const fromIdx = parseInt(selectedSquare.dataset.index);
+            const toIdx = parseInt(square.dataset.index);
+            const pieceType = selectedSquare.querySelector('.piece').dataset.type;
+
+            if (isLegalMove(pieceType, fromIdx, toIdx)) {
+                executeMove(selectedSquare, square);
+            } else {
+                // تلميح تعليمي عند الخطأ
+                square.classList.add('blunder');
+                adviceBox.innerText = "هذه الحركة غير قانونية! تذكر قواعد حركة القطعة المختار.";
+                setTimeout(() => square.classList.remove('blunder'), 500);
+                deselect();
+            }
+        } else {
+            if (piece && piece.dataset.type.startsWith(turn[0])) {
+                selectSquare(square);
+            }
+        }
+    }
+
+    // محرك القواعد المبسط (Logic)
+    function isLegalMove(type, from, to) {
+        const fR = Math.floor(from / 8), fC = from % 8;
+        const tR = Math.floor(to / 8), tC = to % 8;
+        const diffR = Math.abs(fR - tR), diffC = Math.abs(fC - tC);
+        
+        const targetPiece = document.querySelector(`[data-index="${to}"] .piece`);
+        if (targetPiece && targetPiece.dataset.type.startsWith(turn[0])) return false;
+
+        if (type.includes('knight')) {
+            return (diffR === 2 && diffC === 1) || (diffR === 1 && diffC === 2);
+        }
+        if (type.includes('rook')) {
+            return fR === tR || fC === tC;
+        }
+        if (type.includes('bishop')) {
+            return diffR === diffC;
+        }
+        if (type.includes('queen')) {
+            return diffR === diffC || fR === tR || fC === tC;
+        }
+        if (type.includes('pawn')) {
+            const dir = type.startsWith('w') ? -1 : 1;
+            if (fC === tC && !targetPiece) {
+                if (tR - fR === dir) return true;
+                if ((fR === 6 || fR === 1) && tR - fR === 2 * dir) return true;
+            }
+            if (diffC === 1 && tR - fR === dir && targetPiece) return true;
+            return false;
+        }
+        return true; // للملك حالياً
+    }
+
+    function selectSquare(square) {
+        deselect();
+        selectedSquare = square;
+        square.style.background = "rgba(133, 243, 43, 0.5)";
+        adviceBox.innerText = "تم اختيار القطعة. القفز للمربعات المضيئة بالأخضر هو الأفضل!";
+    }
+
+    function deselect() {
+        if (selectedSquare) selectedSquare.style.background = "";
+        selectedSquare = null;
+    }
+
+    function executeMove(from, to) {
+        const piece = from.querySelector('.piece');
+        const targetPiece = to.querySelector('.piece');
+        
+        // حساب الأنيميشن
+        const fRect = from.getBoundingClientRect(), tRect = to.getBoundingClientRect();
+        piece.style.setProperty('--tx', `${tRect.left - fRect.left}px`);
+        piece.style.setProperty('--ty', `${tRect.top - fRect.top}px`);
+        piece.classList.add('moving');
+
+        setTimeout(() => {
+            piece.classList.remove('moving');
+            if (targetPiece) to.removeChild(targetPiece);
+            to.appendChild(piece);
+            
+            // تسجيل الحركة
+            const moveNote = document.createElement('div');
+            moveNote.innerText = `${turn.toUpperCase()}: ${from.dataset.coord} → ${to.dataset.coord}`;
+            historyElement.prepend(moveNote);
+            
+            // تلميح "المعلم"
+            to.classList.add('best-move');
+            setTimeout(() => to.classList.remove('best-move'), 1000);
+            adviceBox.innerText = "حركة ممتازة! لقد قمت بتطوير وضعك في اللوحة.";
+            
+            turn = turn === 'white' ? 'black' : 'white';
+            document.getElementById('turn-indicator').innerText = `دور: ${turn === 'white' ? 'الأبيض' : 'الأسود'}`;
+            deselect();
+        }, 500);
+    }
+
+    createBoard();
+</script>
