@@ -2,52 +2,49 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>شطرنج المحترفين - نسخة السحب والأنيميشن</title>
+    <title>شطرنج المحترفين - القواعد الكاملة</title>
     <style>
         :root {
             --bg: #312e2b;
             --white-sq: #ebecd0;
             --black-sq: #779556;
             --highlight: rgba(246, 246, 105, 0.8);
-            --hint: rgba(0, 0, 0, 0.1);
+            --hint: rgba(0, 0, 0, 0.15);
         }
-
         body { 
             background-color: var(--bg); margin: 0; 
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             height: 100vh; overflow: hidden; font-family: sans-serif;
         }
-
         .board-wrapper {
-            position: relative; width: 90vmin; height: 90vmin;
+            position: relative; width: 88vmin; height: 88vmin;
             max-width: 700px; max-height: 700px;
             border-radius: 4px; overflow: hidden;
             box-shadow: 0 15px 50px rgba(0,0,0,0.6);
         }
-
         .board {
             display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr);
             width: 100%; height: 100%;
         }
-
-        .square {
-            position: relative; display: flex; justify-content: center; align-items: center;
-        }
-
+        .square { position: relative; display: flex; justify-content: center; align-items: center; }
         .light { background-color: var(--white-sq); }
         .dark { background-color: var(--black-sq); }
+        
+        /* الإحداثيات */
+        .square::before { position: absolute; font-size: 1.2vmin; font-weight: bold; z-index: 1; }
+        .square[data-r]::before { content: attr(data-r); left: 2px; top: 1px; }
+        .square[data-c]::before { content: attr(data-c); right: 2px; bottom: 1px; }
+        .light::before { color: var(--black-sq); }
+        .dark::before { color: var(--white-sq); }
 
-        /* تنسيق القطع مع الأنيميشن */
         .piece {
             width: 100%; height: 100%;
             background-size: contain; background-repeat: no-repeat; background-position: center;
-            z-index: 10; cursor: grab;
-            transition: transform 0.2s ease-out; /* أنيميشن الحركة */
+            z-index: 10; cursor: grab; transition: transform 0.15s ease;
         }
-
         .piece:active { cursor: grabbing; z-index: 100; }
 
-        /* روابط قطع Neo */
+        /* قطع Neo الأصلية */
         .wp { background-image: url('https://www.chess.com/chess-themes/pieces/neo/150/wp.png'); }
         .wr { background-image: url('https://www.chess.com/chess-themes/pieces/neo/150/wr.png'); }
         .wn { background-image: url('https://www.chess.com/chess-themes/pieces/neo/150/wn.png'); }
@@ -61,95 +58,57 @@
         .bq { background-image: url('https://www.chess.com/chess-themes/pieces/neo/150/bq.png'); }
         .bk { background-image: url('https://www.chess.com/chess-themes/pieces/neo/150/bk.png'); }
 
-        .controls { margin-top: 20px; display: flex; gap: 15px; }
-        .btn {
-            background: #81b64c; color: white; border: none; padding: 10px 25px;
-            border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px;
-            transition: 0.2s; box-shadow: 0 4px #5d8a32;
+        .hint-dot::after { content: ''; width: 28%; height: 28%; background: var(--hint); border-radius: 50%; pointer-events: none; }
+        .hint-capture::after { 
+            content: ''; width: 85%; height: 85%; border: 0.7vmin solid var(--hint); 
+            border-radius: 50%; position: absolute; pointer-events: none;
         }
-        .btn:hover { background: #95c95d; }
-        .btn:active { box-shadow: 0 0; transform: translateY(4px); }
-
-        .hint-dot::after { content: ''; width: 25%; height: 25%; background: var(--hint); border-radius: 50%; }
+        .controls { margin-top: 15px; display: flex; gap: 10px; }
+        .btn {
+            background: #81b64c; color: white; border: none; padding: 12px 20px;
+            border-radius: 5px; cursor: pointer; font-weight: bold; box-shadow: 0 4px #5d8a32;
+        }
+        .btn:active { transform: translateY(2px); box-shadow: 0 2px #5d8a32; }
     </style>
 </head>
 <body>
-
-    <div class="board-wrapper">
-        <div class="board" id="board"></div>
-    </div>
-
+    <div class="board-wrapper"><div class="board" id="board"></div></div>
     <div class="controls">
-        <button class="btn" onclick="undo()">↩ تراجع عن الحركة</button>
-        <button class="btn" style="background:#454241; box-shadow: 0 4px #2a2827;" onclick="resetGame()">🔄 إعادة البدء</button>
+        <button class="btn" onclick="undo()">↩ تراجع</button>
+        <button class="btn" style="background:#454241; box-shadow: 0 4px #2a2827;" onclick="location.reload()">🔄 إعادة</button>
     </div>
 
-    <script>
-        const boardDiv = document.getElementById('board');
-        let turn = 'w', selectedIdx = null, history = [];
-        
-        let layout = [
-            'br','bn','bb','bq','bk','bb','bn','br',
-            'bp','bp','bp','bp','bp','bp','bp','bp',
-            ...Array(32).fill(null),
-            'wp','wp','wp','wp','wp','wp','wp','wp',
-            'wr','wn','wb','wq','wk','wb','wn','wr'
-        ];
+<script>
+    const boardDiv = document.getElementById('board');
+    let turn = 'w', selectedIdx = null, legalMoves = [], history = [];
+    let layout = [
+        'br','bn','bb','bq','bk','bb','bn','br','bp','bp','bp','bp','bp','bp','bp','bp',
+        ...Array(32).fill(null),
+        'wp','wp','wp','wp','wp','wp','wp','wp','wr','wn','wb','wq','wk','wb','wn','wr'
+    ];
 
-        function render() {
-            boardDiv.innerHTML = '';
-            layout.forEach((p, i) => {
-                const sq = document.createElement('div');
-                sq.className = `square ${(Math.floor(i/8)+i%8)%2===0?'light':'dark'}`;
-                sq.dataset.index = i;
+    function render() {
+        boardDiv.innerHTML = '';
+        layout.forEach((p, i) => {
+            const r = Math.floor(i/8), c = i%8;
+            const sq = document.createElement('div');
+            sq.className = `square ${(r+c)%2===0?'light':'dark'}`;
+            if(c === 0) sq.setAttribute('data-r', 8-r);
+            if(r === 7) sq.setAttribute('data-c', String.fromCharCode(97+c));
 
-                if(p) {
-                    const div = document.createElement('div');
-                    div.className = `piece ${p}`;
-                    div.draggable = true;
-                    div.ondragstart = (e) => {
-                        if(p[0] !== turn) { e.preventDefault(); return; }
-                        selectedIdx = i;
-                        e.dataTransfer.setData('text', i);
-                    };
-                    sq.appendChild(div);
-                }
-
-                sq.ondragover = (e) => e.preventDefault();
-                sq.ondrop = (e) => {
-                    const from = e.dataTransfer.getData('text');
-                    handleMove(parseInt(from), i);
-                };
-
-                boardDiv.appendChild(sq);
-            });
-        }
-
-        function handleMove(from, to) {
-            if(from === to) return;
-            // حفظ الحالة للتراجع
-            history.push([...layout]);
-            
-            // تحريك القطعة
-            layout[to] = layout[from];
-            layout[from] = null;
-            turn = turn === 'w' ? 'b' : 'w';
-            render();
-        }
-
-        function undo() {
-            if(history.length > 0) {
-                layout = history.pop();
-                turn = turn === 'w' ? 'b' : 'w';
-                render();
+            if(p) {
+                const div = document.createElement('div');
+                div.className = `piece ${p}`;
+                div.draggable = (p[0] === turn);
+                div.ondragstart = () => { selectedIdx = i; getLegalMoves(i); render(); };
+                sq.appendChild(div);
             }
-        }
+            if(legalMoves.includes(i)) sq.classList.add(layout[i]?'hint-capture':'hint-dot');
+            sq.ondragover = e => e.preventDefault();
+            sq.ondrop = () => movePiece(selectedIdx, i);
+            boardDiv.appendChild(sq);
+        });
+    }
 
-        function resetGame() {
-            location.reload();
-        }
-
-        render();
-    </script>
-</body>
-</html>
+    function movePiece(from, to) {
+        if (!legalMoves.includes(to)) { legalMoves = []; render(); return; }
