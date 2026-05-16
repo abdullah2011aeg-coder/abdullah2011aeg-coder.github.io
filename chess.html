@@ -2,21 +2,20 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>شطرنج المحترفين - نظام القواعد الصارم</title>
+    <title>شطرنج المحترفين - المحرك الصارم</title>
     <style>
         :root { --bg: #1a1a1a; --gold: #d5a021; --white-sq: #ebecd0; --black-sq: #779556; }
         body { background: var(--bg); color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
         .status { margin-bottom: 15px; font-size: 22px; font-weight: bold; color: var(--gold); }
-        .board { display: grid; grid-template-columns: repeat(8, 65px); grid-template-rows: repeat(8, 65px); border: 8px solid #333; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
-        .square { width: 65px; height: 65px; display: flex; justify-content: center; align-items: center; font-size: 45px; cursor: pointer; position: relative; }
+        .board { display: grid; grid-template-columns: repeat(8, 65px); grid-template-rows: repeat(8, 65px); border: 8px solid #333; }
+        .square { width: 65px; height: 65px; display: flex; justify-content: center; align-items: center; font-size: 45px; cursor: pointer; }
         .light { background: var(--white-sq); }
         .dark { background: var(--black-sq); }
         .selected { background: #f3cf2b !important; }
-        .hint::after { content: ''; width: 15px; height: 15px; background: rgba(0,0,0,0.1); border-radius: 50%; }
-        .piece { user-select: none; z-index: 10; transition: transform 0.1s; }
+        .piece { user-select: none; z-index: 10; }
         .white-p { color: #fff; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5)); }
         .black-p { color: #000; filter: drop-shadow(1px 1px 1px rgba(255,255,255,0.2)); }
-        .invalid { animation: shake 0.3s; background: rgba(255, 0, 0, 0.4) !important; }
+        .invalid { background: rgba(255, 0, 0, 0.4) !important; animation: shake 0.3s; }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
     </style>
 </head>
@@ -29,7 +28,6 @@
         let selectedIdx = null;
         let turn = 'w';
 
-        // توزيع القطع الابتدائي
         let layout = [
             'br','bn','bb','bq','bk','bb','bn','br',
             'bp','bp','bp','bp','bp','bp','bp','bp',
@@ -60,18 +58,18 @@
             const p = layout[i];
             if(selectedIdx !== null) {
                 if(isLegal(selectedIdx, i)) {
-                    // منع أكل الملك
-                    if(layout[i] && layout[i][1] === 'k') return; 
-                    
+                    // القواعد الصارمة: منع أكل الملك ومنع أكل نفس اللون
+                    if(layout[i] && (layout[i][1] === 'k' || layout[i][0] === turn)) {
+                        triggerInvalid(i);
+                        return;
+                    }
                     layout[i] = layout[selectedIdx];
                     layout[selectedIdx] = null;
                     turn = turn === 'w' ? 'b' : 'w';
                     statusTxt.innerText = turn === 'w' ? 'دور الأبيض ⚪' : 'دور الأسود ⚫';
                     selectedIdx = null;
                 } else {
-                    const sqs = document.querySelectorAll('.square');
-                    sqs[i].classList.add('invalid');
-                    setTimeout(() => sqs[i].classList.remove('invalid'), 300);
+                    triggerInvalid(i);
                     selectedIdx = null;
                 }
             } else if(p && p[0] === turn) {
@@ -80,41 +78,40 @@
             render();
         }
 
+        function triggerInvalid(i) {
+            const sqs = document.querySelectorAll('.square');
+            sqs[i].classList.add('invalid');
+            setTimeout(() => sqs[i].classList.remove('invalid'), 300);
+        }
+
         function isLegal(from, to) {
             const fR = Math.floor(from/8), fC = from%8, tR = Math.floor(to/8), tC = to%8;
             const dR = Math.abs(fR-tR), dC = Math.abs(fC-tC);
             const p = layout[from], target = layout[to];
 
-            if(target && target[0] === turn) return false; // لا يمكنك أكل قطعك
-
             switch(p[1]) {
-                case 'p': // البيدق
+                case 'p': // الجندي: يمشي قدام، يأكل مائل، ما يرجع ورا
                     const dir = p[0] === 'w' ? -1 : 1;
                     if(fC === tC && !target) {
                         if(tR-fR === dir) return true;
                         if((fR===1||fR===6) && tR-fR === 2*dir && !layout[from + 8*dir]) return true;
                     }
                     return (dC === 1 && tR-fR === dir && target);
-                case 'n': return (dR === 2 && dC === 1) || (dR === 1 && dC === 2); // الحصان
-                case 'b': return dR === dC && isPathClear(fR, fC, tR, tC); // الفيل
-                case 'r': return (fR === tR || fC === tC) && isPathClear(fR, fC, tR, tC); // القلعة
-                case 'q': return (dR === dC || fR === tR || fC === tC) && isPathClear(fR, fC, tR, tC); // الوزير
-                case 'k': return dR <= 1 && dC <= 1; // الملك
+                case 'n': return (dR === 2 && dC === 1) || (dR === 1 && dC === 2);
+                case 'b': return dR === dC && isPathClear(fR, fC, tR, tC);
+                case 'r': return (fR === tR || fC === tC) && isPathClear(fR, fC, tR, tC);
+                case 'q': return (dR === dC || fR === tR || fC === tC) && isPathClear(fR, fC, tR, tC);
+                case 'k': return dR <= 1 && dC <= 1;
             }
             return false;
         }
 
         function isPathClear(fR, fC, tR, tC) {
-            const stepR = fR === tR ? 0 : (tR > fR ? 1 : -1);
-            const stepC = fC === tC ? 0 : (tC > fC ? 1 : -1);
-            let r = fR + stepR, c = fC + stepC;
-            while(r !== tR || c !== tC) {
-                if(layout[r*8 + c]) return false;
-                r += stepR; c += stepC;
-            }
+            const sR = fR === tR ? 0 : (tR > fR ? 1 : -1), sC = fC === tC ? 0 : (tC > fC ? 1 : -1);
+            let r = fR + sR, c = fC + sC;
+            while(r !== tR || c !== tC) { if(layout[r*8 + c]) return false; r += sR; c += sC; }
             return true;
         }
-
         render();
     </script>
 </body>
