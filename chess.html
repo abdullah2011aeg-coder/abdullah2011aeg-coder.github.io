@@ -2,100 +2,120 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>شطرنج المحترفين الذكي</title>
+    <title>شطرنج المحترفين - نظام القواعد الصارم</title>
     <style>
-        body { background: #1a1a1a; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-        .status { margin-bottom: 10px; font-size: 24px; color: #d5a021; }
-        .board { display: grid; grid-template-columns: repeat(8, 60px); grid-template-rows: repeat(8, 60px); border: 5px solid #333; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        .square { width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 40px; cursor: pointer; transition: 0.2s; }
-        .white-sq { background: #ebecd0; }
-        .black-sq { background: #779556; }
+        :root { --bg: #1a1a1a; --gold: #d5a021; --white-sq: #ebecd0; --black-sq: #779556; }
+        body { background: var(--bg); color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .status { margin-bottom: 15px; font-size: 22px; font-weight: bold; color: var(--gold); }
+        .board { display: grid; grid-template-columns: repeat(8, 65px); grid-template-rows: repeat(8, 65px); border: 8px solid #333; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
+        .square { width: 65px; height: 65px; display: flex; justify-content: center; align-items: center; font-size: 45px; cursor: pointer; position: relative; }
+        .light { background: var(--white-sq); }
+        .dark { background: var(--black-sq); }
         .selected { background: #f3cf2b !important; }
-        .valid-move { background: rgba(133, 243, 43, 0.6) !important; box-shadow: inset 0 0 10px #000; }
-        .piece { transition: transform 0.3s ease; user-select: none; }
-        .controls { margin-top: 20px; }
-        button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: #d5a021; border: none; border-radius: 5px; font-weight: bold; }
+        .hint::after { content: ''; width: 15px; height: 15px; background: rgba(0,0,0,0.1); border-radius: 50%; }
+        .piece { user-select: none; z-index: 10; transition: transform 0.1s; }
+        .white-p { color: #fff; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5)); }
+        .black-p { color: #000; filter: drop-shadow(1px 1px 1px rgba(255,255,255,0.2)); }
+        .invalid { animation: shake 0.3s; background: rgba(255, 0, 0, 0.4) !important; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
     </style>
 </head>
 <body>
-
-    <div class="status" id="status">دور اللاعب: الأبيض ⚪</div>
+    <div class="status" id="status">دور الأبيض ⚪</div>
     <div class="board" id="board"></div>
-    <div class="controls">
-        <button onclick="location.reload()">إعادة اللعبة 🔄</button>
-        <button onclick="window.location.href='index.html'">الرجوع لـ X-O 🔙</button>
-    </div>
-
     <script>
-        const boardElement = document.getElementById('board');
-        const statusElement = document.getElementById('status');
-        let selectedSquare = null;
+        const boardDiv = document.getElementById('board');
+        const statusTxt = document.getElementById('status');
+        let selectedIdx = null;
         let turn = 'w';
 
-        // قطع الشطرنج باستخدام الرموز لضمان عدم ظهور شاشة بيضاء
-        const pieces = {
-            'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟',
-            'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙'
-        };
-
-        let boardLayout = [
-            ['r','n','b','q','k','b','n','r'],
-            ['p','p','p','p','p','p','p','p'],
-            ['','','','','','','',''],
-            ['','','','','','','',''],
-            ['','','','','','','',''],
-            ['','','','','','','',''],
-            ['P','P','P','P','P','P','P','P'],
-            ['R','N','B','Q','K','B','N','R']
+        // توزيع القطع الابتدائي
+        let layout = [
+            'br','bn','bb','bq','bk','bb','bn','br',
+            'bp','bp','bp','bp','bp','bp','bp','bp',
+            ...Array(32).fill(null),
+            'wp','wp','wp','wp','wp','wp','wp','wp',
+            'wr','wn','wb','wq','wk','wb','wn','wr'
         ];
 
-        function createBoard() {
-            boardElement.innerHTML = '';
-            for (let r = 0; r < 8; r++) {
-                for (let c = 0; c < 8; c++) {
-                    const square = document.createElement('div');
-                    square.className = `square ${(r + c) % 2 === 0 ? 'white-sq' : 'black-sq'}`;
-                    square.dataset.row = r;
-                    square.dataset.col = c;
+        function render() {
+            boardDiv.innerHTML = '';
+            layout.forEach((p, i) => {
+                const r = Math.floor(i/8), c = i%8;
+                const sq = document.createElement('div');
+                sq.className = `square ${(r+c)%2===0?'light':'dark'}`;
+                if(p) {
+                    const span = document.createElement('span');
+                    span.className = `piece ${p[0]==='w'?'white-p':'black-p'}`;
+                    span.innerText = {'p':'♟','r':'♜','n':'♞','b':'♝','q':'♛','k':'♚'}[p[1]];
+                    sq.appendChild(span);
+                }
+                if(selectedIdx === i) sq.classList.add('selected');
+                sq.onclick = () => click(i);
+                boardDiv.appendChild(sq);
+            });
+        }
+
+        function click(i) {
+            const p = layout[i];
+            if(selectedIdx !== null) {
+                if(isLegal(selectedIdx, i)) {
+                    // منع أكل الملك
+                    if(layout[i] && layout[i][1] === 'k') return; 
                     
-                    const piece = boardLayout[r][c];
-                    if (piece) {
-                        const pieceDiv = document.createElement('div');
-                        pieceDiv.className = 'piece';
-                        pieceDiv.innerText = pieces[piece];
-                        pieceDiv.style.color = piece === piece.toUpperCase() ? "white" : "black";
-                        square.appendChild(pieceDiv);
+                    layout[i] = layout[selectedIdx];
+                    layout[selectedIdx] = null;
+                    turn = turn === 'w' ? 'b' : 'w';
+                    statusTxt.innerText = turn === 'w' ? 'دور الأبيض ⚪' : 'دور الأسود ⚫';
+                    selectedIdx = null;
+                } else {
+                    const sqs = document.querySelectorAll('.square');
+                    sqs[i].classList.add('invalid');
+                    setTimeout(() => sqs[i].classList.remove('invalid'), 300);
+                    selectedIdx = null;
+                }
+            } else if(p && p[0] === turn) {
+                selectedIdx = i;
+            }
+            render();
+        }
+
+        function isLegal(from, to) {
+            const fR = Math.floor(from/8), fC = from%8, tR = Math.floor(to/8), tC = to%8;
+            const dR = Math.abs(fR-tR), dC = Math.abs(fC-tC);
+            const p = layout[from], target = layout[to];
+
+            if(target && target[0] === turn) return false; // لا يمكنك أكل قطعك
+
+            switch(p[1]) {
+                case 'p': // البيدق
+                    const dir = p[0] === 'w' ? -1 : 1;
+                    if(fC === tC && !target) {
+                        if(tR-fR === dir) return true;
+                        if((fR===1||fR===6) && tR-fR === 2*dir && !layout[from + 8*dir]) return true;
                     }
-
-                    square.onclick = () => handleSquareClick(r, c);
-                    boardElement.appendChild(square);
-                }
+                    return (dC === 1 && tR-fR === dir && target);
+                case 'n': return (dR === 2 && dC === 1) || (dR === 1 && dC === 2); // الحصان
+                case 'b': return dR === dC && isPathClear(fR, fC, tR, tC); // الفيل
+                case 'r': return (fR === tR || fC === tC) && isPathClear(fR, fC, tR, tC); // القلعة
+                case 'q': return (dR === dC || fR === tR || fC === tC) && isPathClear(fR, fC, tR, tC); // الوزير
+                case 'k': return dR <= 1 && dC <= 1; // الملك
             }
+            return false;
         }
 
-        function handleSquareClick(r, c) {
-            const clickedPiece = boardLayout[r][c];
-            
-            if (selectedSquare) {
-                const [sr, sc] = selectedSquare;
-                // تنفيذ الحركة
-                boardLayout[r][c] = boardLayout[sr][sc];
-                boardLayout[sr][sc] = '';
-                selectedSquare = null;
-                turn = turn === 'w' ? 'b' : 'w';
-                statusElement.innerText = turn === 'w' ? "دور اللاعب: الأبيض ⚪" : "دور اللاعب: الأسود ⚫";
-                createBoard();
-            } else {
-                if (clickedPiece && ((turn === 'w' && clickedPiece === clickedPiece.toUpperCase()) || (turn === 'b' && clickedPiece === clickedPiece.toLowerCase()))) {
-                    selectedSquare = [r, c];
-                    createBoard();
-                    const idx = r * 8 + c;
-                    boardElement.children[idx].classList.add('selected');
-                }
+        function isPathClear(fR, fC, tR, tC) {
+            const stepR = fR === tR ? 0 : (tR > fR ? 1 : -1);
+            const stepC = fC === tC ? 0 : (tC > fC ? 1 : -1);
+            let r = fR + stepR, c = fC + stepC;
+            while(r !== tR || c !== tC) {
+                if(layout[r*8 + c]) return false;
+                r += stepR; c += stepC;
             }
+            return true;
         }
 
-        createBoard();
+        render();
     </script>
 </body>
 </html>
