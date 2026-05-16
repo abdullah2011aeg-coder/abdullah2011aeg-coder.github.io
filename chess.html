@@ -2,117 +2,90 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>شطرنج المحترفين - المحرك الصارم</title>
+    <title>شطرنج المحترفين - Modern Edition</title>
     <style>
-        :root { --bg: #1a1a1a; --gold: #d5a021; --white-sq: #ebecd0; --black-sq: #779556; }
-        body { background: var(--bg); color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .status { margin-bottom: 15px; font-size: 22px; font-weight: bold; color: var(--gold); }
-        .board { display: grid; grid-template-columns: repeat(8, 65px); grid-template-rows: repeat(8, 65px); border: 8px solid #333; }
-        .square { width: 65px; height: 65px; display: flex; justify-content: center; align-items: center; font-size: 45px; cursor: pointer; }
+        :root {
+            --bg: #0a0b10;
+            --panel: rgba(23, 25, 35, 0.9);
+            --accent: #00a2ff; /* Glass Blue */
+            --white-sq: #dee3e6;
+            --black-sq: #3b4249;
+            --gold: #d5a021;
+        }
+
+        body { 
+            background: radial-gradient(circle at center, #1a1c2c 0%, #0a0b10 100%);
+            color: white; 
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100vh; margin: 0; overflow: hidden;
+        }
+
+        .glass-header {
+            background: var(--panel);
+            backdrop-filter: blur(10px);
+            padding: 15px 40px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .status { font-size: 24px; font-weight: 600; color: var(--accent); letter-spacing: 1px; }
+
+        .board-container {
+            position: relative;
+            padding: 15px;
+            background: #23272e;
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(8, 68px);
+            grid-template-rows: repeat(8, 68px);
+            border: 4px solid #1a1d23;
+        }
+
+        .square {
+            width: 68px; height: 68px;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 48px; cursor: pointer; transition: all 0.2s;
+            position: relative;
+        }
+
         .light { background: var(--white-sq); }
         .dark { background: var(--black-sq); }
-        .selected { background: #f3cf2b !important; }
-        .piece { user-select: none; z-index: 10; }
-        .white-p { color: #fff; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5)); }
-        .black-p { color: #000; filter: drop-shadow(1px 1px 1px rgba(255,255,255,0.2)); }
-        .invalid { background: rgba(255, 0, 0, 0.4) !important; animation: shake 0.3s; }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
-    </style>
-</head>
-<body>
-    <div class="status" id="status">دور الأبيض ⚪</div>
-    <div class="board" id="board"></div>
-    <script>
-        const boardDiv = document.getElementById('board');
-        const statusTxt = document.getElementById('status');
-        let selectedIdx = null;
-        let turn = 'w';
 
-        let layout = [
-            'br','bn','bb','bq','bk','bb','bn','br',
-            'bp','bp','bp','bp','bp','bp','bp','bp',
-            ...Array(32).fill(null),
-            'wp','wp','wp','wp','wp','wp','wp','wp',
-            'wr','wn','wb','wq','wk','wb','wn','wr'
-        ];
-
-        function render() {
-            boardDiv.innerHTML = '';
-            layout.forEach((p, i) => {
-                const r = Math.floor(i/8), c = i%8;
-                const sq = document.createElement('div');
-                sq.className = `square ${(r+c)%2===0?'light':'dark'}`;
-                if(p) {
-                    const span = document.createElement('span');
-                    span.className = `piece ${p[0]==='w'?'white-p':'black-p'}`;
-                    span.innerText = {'p':'♟','r':'♜','n':'♞','b':'♝','q':'♛','k':'♚'}[p[1]];
-                    sq.appendChild(span);
-                }
-                if(selectedIdx === i) sq.classList.add('selected');
-                sq.onclick = () => click(i);
-                boardDiv.appendChild(sq);
-            });
+        /* تأثير التحديد الحديث */
+        .selected { 
+            background: rgba(0, 162, 255, 0.5) !important;
+            box-shadow: inset 0 0 15px var(--accent);
         }
 
-        function click(i) {
-            const p = layout[i];
-            if(selectedIdx !== null) {
-                if(isLegal(selectedIdx, i)) {
-                    // القواعد الصارمة: منع أكل الملك ومنع أكل نفس اللون
-                    if(layout[i] && (layout[i][1] === 'k' || layout[i][0] === turn)) {
-                        triggerInvalid(i);
-                        return;
-                    }
-                    layout[i] = layout[selectedIdx];
-                    layout[selectedIdx] = null;
-                    turn = turn === 'w' ? 'b' : 'w';
-                    statusTxt.innerText = turn === 'w' ? 'دور الأبيض ⚪' : 'دور الأسود ⚫';
-                    selectedIdx = null;
-                } else {
-                    triggerInvalid(i);
-                    selectedIdx = null;
-                }
-            } else if(p && p[0] === turn) {
-                selectedIdx = i;
-            }
-            render();
+        .hint::after {
+            content: ''; width: 18px; height: 18px;
+            background: rgba(0, 162, 255, 0.3); border-radius: 50%;
         }
 
-        function triggerInvalid(i) {
-            const sqs = document.querySelectorAll('.square');
-            sqs[i].classList.add('invalid');
-            setTimeout(() => sqs[i].classList.remove('invalid'), 300);
+        .piece {
+            user-select: none; z-index: 10;
+            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.4));
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .piece:hover { transform: scale(1.15); }
+        .white-p { color: #ffffff; }
+        .black-p { color: #111; }
+
+        .btn-modern {
+            margin-top: 30px;
+            padding: 12px 35px;
+            background: var(--accent);
+            color: white; border: none; border-radius: 50px;
+            font-weight: bold; cursor: pointer;
+            transition: 0.3s; box-shadow: 0 5px 15px rgba(0, 162, 255, 0.4);
         }
 
-        function isLegal(from, to) {
-            const fR = Math.floor(from/8), fC = from%8, tR = Math.floor(to/8), tC = to%8;
-            const dR = Math.abs(fR-tR), dC = Math.abs(fC-tC);
-            const p = layout[from], target = layout[to];
-
-            switch(p[1]) {
-                case 'p': // الجندي: يمشي قدام، يأكل مائل، ما يرجع ورا
-                    const dir = p[0] === 'w' ? -1 : 1;
-                    if(fC === tC && !target) {
-                        if(tR-fR === dir) return true;
-                        if((fR===1||fR===6) && tR-fR === 2*dir && !layout[from + 8*dir]) return true;
-                    }
-                    return (dC === 1 && tR-fR === dir && target);
-                case 'n': return (dR === 2 && dC === 1) || (dR === 1 && dC === 2);
-                case 'b': return dR === dC && isPathClear(fR, fC, tR, tC);
-                case 'r': return (fR === tR || fC === tC) && isPathClear(fR, fC, tR, tC);
-                case 'q': return (dR === dC || fR === tR || fC === tC) && isPathClear(fR, fC, tR, tC);
-                case 'k': return dR <= 1 && dC <= 1;
-            }
-            return false;
-        }
-
-        function isPathClear(fR, fC, tR, tC) {
-            const sR = fR === tR ? 0 : (tR > fR ? 1 : -1), sC = fC === tC ? 0 : (tC > fC ? 1 : -1);
-            let r = fR + sR, c = fC + sC;
-            while(r !== tR || c !== tC) { if(layout[r*8 + c]) return false; r += sR; c += sC; }
-            return true;
-        }
-        render();
-    </script>
-</body>
-</html>
+        .btn-modern:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,
