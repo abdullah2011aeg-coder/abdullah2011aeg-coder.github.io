@@ -1,17 +1,16 @@
-<a href="chess.html" style="color: gold; font-size: 20px; text-decoration: none; border: 2px solid gold; padding: 10px; border-radius: 10px;">
-   ➡️ اذهب لتحدي الشطرنج الذكي
-</a>    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>X-O Professional: Chess Clock Edition</title>
+    <title>Abdullah Games - ألعاب عبدالله</title>
     <style>
         :root {
             --bg-color: #0a0a0c;
             --card-bg: #16161a;
             --neon-blue: #00f2ff;
             --neon-red: #ff0055;
+            --neon-green: #00ff00;
             --text-color: #e0e0e0;
             --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
@@ -19,226 +18,610 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            background-color: var(--bg-color);
+            background: linear-gradient(135deg, #0a0a0c 0%, #1a0a2e 50%, #0a0a0c 100%);
             color: var(--text-color);
             font-family: var(--font-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .main-container {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            overflow-x: hidden;
+            padding: 20px;
+            gap: 40px;
         }
 
-        #setup-screen {
+        .header {
             text-align: center;
-            z-index: 10;
+            margin-bottom: 30px;
         }
 
         h1 {
-            font-size: 3rem;
+            font-size: 3.5rem;
             text-transform: uppercase;
             letter-spacing: 5px;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-red), var(--neon-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(0, 242, 255, 0.5);
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
             color: var(--neon-blue);
-            text-shadow: 0 0 20px var(--neon-blue);
-        }
-
-        .menu-card {
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 15px;
-            border: 1px solid #333;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .mode-selector, .time-selector {
-            margin-bottom: 20px;
-        }
-
-        label { display: block; margin-bottom: 10px; font-weight: bold; }
-
-        select, input {
-            background: #222;
-            color: white;
-            border: 1px solid var(--neon-blue);
-            padding: 10px;
-            border-radius: 5px;
-            width: 100%;
-            font-size: 1rem;
-            outline: none;
-        }
-
-        button {
-            background: transparent;
-            color: var(--neon-blue);
-            border: 2px solid var(--neon-blue);
-            padding: 12px 30px;
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: 0.3s;
-            text-transform: uppercase;
-            font-weight: bold;
             margin-top: 10px;
+            text-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
         }
 
-        button:hover {
-            background: var(--neon-blue);
-            color: black;
-            box-shadow: 0 0 20px var(--neon-blue);
-        }
-
-        #game-interface {
-            display: none;
-            width: 100%;
-            max-width: 600px;
-            padding: 20px;
-        }
-
-        .chess-clocks {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 30px;
-            gap: 20px;
-        }
-
-        .clock {
-            flex: 1;
-            padding: 15px;
-            background: #111;
-            border-radius: 10px;
-            text-align: center;
-            border: 2px solid #333;
-            transition: 0.3s;
-        }
-
-        .clock.active-blue { border-color: var(--neon-blue); box-shadow: 0 0 15px var(--neon-blue); }
-        .clock.active-red { border-color: var(--neon-red); box-shadow: 0 0 15px var(--neon-red); }
-
-        .time-display {
-            font-size: 2.5rem;
-            font-family: 'Courier New', Courier, monospace;
-            font-weight: bold;
-        }
-
-        .player-label { font-size: 0.8rem; margin-bottom: 5px; opacity: 0.7; }
-
-        .blue-text { color: var(--neon-blue); }
-        .red-text { color: var(--neon-red); }
-
-        .warning { animation: blink 0.5s infinite; color: #ff0000 !important; }
-
-        @keyframes blink {
-            0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; }
-        }
-
-        .board {
+        .games-container {
             display: grid;
-            gap: 10px;
-            margin: 0 auto;
-            perspective: 1000px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            max-width: 1000px;
+            width: 100%;
         }
 
-        .cell {
-            background: rgba(255, 255, 255, 0.05);
-            aspect-ratio: 1/1;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-            border: 1px solid #222;
-            position: relative;
-            user-select: none;
-        }
-
-        .cell:hover { background: rgba(255, 255, 255, 0.1); }
-        .cell.x { color: var(--neon-blue); text-shadow: 0 0 15px var(--neon-blue); }
-        .cell.o { color: var(--neon-red); text-shadow: 0 0 15px var(--neon-red); }
-
-        .status-bar {
+        .game-card {
+            background: var(--card-bg);
+            border: 2px solid #333;
+            border-radius: 15px;
+            padding: 30px;
             text-align: center;
-            margin-top: 20px;
-            font-size: 1.2rem;
-            min-height: 1.5em;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
-        #overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 242, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+            z-index: 0;
+        }
+
+        .game-card:hover::before {
+            left: 100%;
+        }
+
+        .game-card:hover {
+            border-color: var(--neon-blue);
+            box-shadow: 0 15px 40px rgba(0, 242, 255, 0.3);
+            transform: translateY(-10px);
+        }
+
+        .game-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            display: block;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        .game-card:hover .game-icon {
+            animation: bounce-fast 0.6s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes bounce-fast {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .game-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--neon-blue);
+            position: relative;
+            z-index: 1;
+        }
+
+        .game-description {
+            font-size: 0.95rem;
+            color: #aaa;
+            margin-bottom: 20px;
+            line-height: 1.5;
+            position: relative;
+            z-index: 1;
+        }
+
+        .game-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(0, 242, 255, 0.05);
+            border-radius: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            z-index: 100;
-            display: none;
+        }
+
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--neon-green);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .play-btn {
+            background: linear-gradient(45deg, var(--neon-blue), #00d4ff);
+            color: black;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 5px 20px rgba(0, 242, 255, 0.3);
+            text-decoration: none;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 30px rgba(0, 242, 255, 0.5);
+            background: linear-gradient(45deg, #00d4ff, var(--neon-blue));
+        }
+
+        .play-btn:active {
+            transform: scale(0.98);
+        }
+
+        .chess-btn {
+            background: linear-gradient(45deg, var(--neon-green), #00ff33);
+            box-shadow: 0 5px 20px rgba(0, 255, 0, 0.3);
+        }
+
+        .chess-btn:hover {
+            box-shadow: 0 8px 30px rgba(0, 255, 0, 0.5);
+            background: linear-gradient(45deg, #00ff33, var(--neon-green));
+        }
+
+        .xo-btn {
+            background: linear-gradient(45deg, var(--neon-red), #ff0080);
+            box-shadow: 0 5px 20px rgba(255, 0, 85, 0.3);
+        }
+
+        .xo-btn:hover {
+            box-shadow: 0 8px 30px rgba(255, 0, 85, 0.5);
+            background: linear-gradient(45deg, #ff0080, var(--neon-red));
+        }
+
+        .footer {
             text-align: center;
+            margin-top: 50px;
             padding: 20px;
+            color: #666;
+            border-top: 1px solid #333;
+            width: 100%;
         }
 
-        #overlay h2 { font-size: 3rem; margin-bottom: 20px; }
-        #insult { font-size: 1.5rem; font-style: italic; color: #ff3366; margin-bottom: 30px; max-width: 600px; font-weight: bold; }
-
-        .win-glow {
-            animation: win-pulse 0.5s infinite alternate;
-            background: rgba(0, 255, 0, 0.2) !important;
+        .footer p {
+            margin: 5px 0;
+            font-size: 0.9rem;
         }
 
-        @keyframes win-pulse {
-            from { transform: scale(1); filter: brightness(1); }
-            to { transform: scale(1.05); filter: brightness(1.3); }
+        .made-by {
+            font-weight: bold;
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+            }
+
+            .game-card {
+                padding: 20px;
+            }
+
+            .game-icon {
+                font-size: 3rem;
+            }
+
+            .game-title {
+                font-size: 1.2rem;
+            }
+
+            .games-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--neon-green);
+            color: black;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-top: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .new-badge {
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
         }
     </style>
 </head>
 <body>
 
-    <!-- Setup Screen -->
-    <div id="setup-screen">
-        <h1>X-O ULTIMATE</h1>
-        <div class="menu-card">
-            <div class="mode-selector">
-                <label>اختر مستوى التحدي:</label>
-                <select id="game-mode">
-                    <option value="3">عادي (3x3)</option>
-                    <option value="4">محترفين (4x4)</option>
-                    <option value="hacker">هاكرز (4x4 + مسح واختراق)</option>
-                </select>
+    <div class="main-container">
+        <div class="header">
+            <h1>🎮 Abdullah Games 🎮</h1>
+            <p class="subtitle">ألعاب مثيرة وتحديات ذهنية</p>
+        </div>
+
+        <div class="games-container">
+            <!-- X-O Game Card -->
+            <div class="game-card">
+                <span class="game-icon">❌⭕</span>
+                <h2 class="game-title">X-O Ultimate</h2>
+                <p class="game-description">
+                    لعبة إكس أو الكلاسيكية مع ساعات شطرنج وتحديات متعددة المستويات
+                </p>
+                <div class="game-stats">
+                    <div class="stat">
+                        <span class="stat-value">3</span>
+                        <span class="stat-label">مستويات</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">∞</span>
+                        <span class="stat-label">تحديات</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">2</span>
+                        <span class="stat-label">لاعب</span>
+                    </div>
+                </div>
+                <button class="play-btn xo-btn" onclick="startGame()">ابدأ اللعبة</button>
+                <span class="badge">الكلاسيكية</span>
             </div>
-            <div class="time-selector">
-                <label>وقت كل لاعب (بالدقائق):</label>
-                <input type="number" id="time-input" value="1" min="0.5" step="0.5">
+
+            <!-- Chess Game Card -->
+            <div class="game-card">
+                <span class="game-icon">♟️</span>
+                <h2 class="game-title">Chess Master</h2>
+                <p class="game-description">
+                    لعبة الشطرنج الكاملة مع قواعد احترافية وكشف الشيك والكش ملك
+                </p>
+                <div class="game-stats">
+                    <div class="stat">
+                        <span class="stat-value">16</span>
+                        <span class="stat-label">قطعة</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">♔</span>
+                        <span class="stat-label">ملك</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">2</span>
+                        <span class="stat-label">لاعب</span>
+                    </div>
+                </div>
+                <a href="chess-game.html" class="play-btn chess-btn">ابدأ الشطرنج</a>
+                <span class="badge new-badge">🆕 جديد</span>
             </div>
-            <button onclick="startGame()">ابدأ المعركة</button>
+        </div>
+
+        <div class="footer">
+            <p class="made-by">👨‍💻 من تطوير: Abdullah</p>
+            <p>استمتع بألعاب مثيرة وتحديات ذهنية</p>
+            <p style="margin-top: 10px; color: #555;">© 2026 Abdullah Games</p>
+        </div>
+    </div>
+
+    <script>
+        function startGame() {
+            // يتم التعامل مع لعبة X-O من خلال HTML مباشرة
+            document.getElementById('setup-screen').style.display = 'block';
+            document.getElementById('game-interface').style.display = 'none';
+        }
+
+        // إضافة تأثير عند تحميل الصفحة
+        window.addEventListener('load', () => {
+            const cards = document.querySelectorAll('.game-card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.animation = 'slideIn 0.5s ease forwards';
+                }, index * 100);
+            });
+        });
+
+        // إضافة CSS للحركة
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes slideIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+
+    <!-- X-O Game Interface (Hidden initially) -->
+    <div id="setup-screen" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+        <style>
+            #setup-screen {
+                text-align: center;
+                z-index: 10;
+            }
+
+            .menu-card {
+                background: var(--card-bg);
+                padding: 30px;
+                border-radius: 15px;
+                border: 1px solid #333;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            }
+
+            .mode-selector, .time-selector {
+                margin-bottom: 20px;
+            }
+
+            label { display: block; margin-bottom: 10px; font-weight: bold; }
+
+            select, input {
+                background: #222;
+                color: white;
+                border: 1px solid var(--neon-blue);
+                padding: 10px;
+                border-radius: 5px;
+                width: 100%;
+                font-size: 1rem;
+                outline: none;
+            }
+
+            .xo-button {
+                background: transparent;
+                color: var(--neon-blue);
+                border: 2px solid var(--neon-blue);
+                padding: 12px 30px;
+                font-size: 1.2rem;
+                cursor: pointer;
+                transition: 0.3s;
+                text-transform: uppercase;
+                font-weight: bold;
+                margin-top: 10px;
+                border-radius: 8px;
+            }
+
+            .xo-button:hover {
+                background: var(--neon-blue);
+                color: black;
+                box-shadow: 0 0 20px var(--neon-blue);
+            }
+
+            #game-interface {
+                display: none;
+                width: 100%;
+                max-width: 600px;
+                padding: 20px;
+            }
+
+            .chess-clocks {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 30px;
+                gap: 20px;
+            }
+
+            .clock {
+                flex: 1;
+                padding: 15px;
+                background: #111;
+                border-radius: 10px;
+                text-align: center;
+                border: 2px solid #333;
+                transition: 0.3s;
+            }
+
+            .clock.active-blue { border-color: var(--neon-blue); box-shadow: 0 0 15px var(--neon-blue); }
+            .clock.active-red { border-color: var(--neon-red); box-shadow: 0 0 15px var(--neon-red); }
+
+            .time-display {
+                font-size: 2.5rem;
+                font-family: 'Courier New', Courier, monospace;
+                font-weight: bold;
+            }
+
+            .player-label { font-size: 0.8rem; margin-bottom: 5px; opacity: 0.7; }
+
+            .blue-text { color: var(--neon-blue); }
+            .red-text { color: var(--neon-red); }
+
+            .warning { animation: blink 0.5s infinite; color: #ff0000 !important; }
+
+            @keyframes blink {
+                0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; }
+            }
+
+            .board {
+                display: grid;
+                gap: 10px;
+                margin: 0 auto;
+                perspective: 1000px;
+            }
+
+            .cell {
+                background: rgba(255, 255, 255, 0.05);
+                aspect-ratio: 1/1;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 3rem;
+                font-weight: bold;
+                cursor: pointer;
+                transition: 0.2s;
+                border: 1px solid #222;
+                position: relative;
+                user-select: none;
+            }
+
+            .cell:hover { background: rgba(255, 255, 255, 0.1); }
+            .cell.x { color: var(--neon-blue); text-shadow: 0 0 15px var(--neon-blue); }
+            .cell.o { color: var(--neon-red); text-shadow: 0 0 15px var(--neon-red); }
+
+            .status-bar {
+                text-align: center;
+                margin-top: 20px;
+                font-size: 1.2rem;
+                min-height: 1.5em;
+            }
+
+            #overlay {
+                position: fixed;
+                top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.95);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                z-index: 100;
+                display: none;
+                text-align: center;
+                padding: 20px;
+            }
+
+            #overlay h2 { font-size: 3rem; margin-bottom: 20px; }
+            #insult { font-size: 1.5rem; font-style: italic; color: #ff3366; margin-bottom: 30px; max-width: 600px; font-weight: bold; }
+
+            .win-glow {
+                animation: win-pulse 0.5s infinite alternate;
+                background: rgba(0, 255, 0, 0.2) !important;
+            }
+
+            @keyframes win-pulse {
+                from { transform: scale(1); filter: brightness(1); }
+                to { transform: scale(1.05); filter: brightness(1.3); }
+            }
+
+            .back-button {
+                position: absolute;
+                top: 20px;
+                right: 20px;
+                background: var(--neon-red);
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-weight: bold;
+            }
+
+            .back-button:hover {
+                background: #ff0080;
+            }
+        </style>
+
+        <div style="position: relative; width: 100%; max-width: 500px;">
+            <button class="back-button" onclick="goBackToMenu()">← العودة</button>
+            <div style="text-align: center;">
+                <h1 style="color: var(--neon-blue); margin-bottom: 20px;">X-O ULTIMATE</h1>
+                <div class="menu-card">
+                    <div class="mode-selector">
+                        <label>اختر مستوى التحدي:</label>
+                        <select id="game-mode">
+                            <option value="3">عادي (3x3)</option>
+                            <option value="4">محترفين (4x4)</option>
+                            <option value="hacker">هاكرز (4x4 + مسح واختراق)</option>
+                        </select>
+                    </div>
+                    <div class="time-selector">
+                        <label>وقت كل لاعب (بالدقائق):</label>
+                        <input type="number" id="time-input" value="1" min="0.5" step="0.5">
+                    </div>
+                    <button class="xo-button" onclick="startXOGame()">ابدأ المعركة</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Game Interface -->
-    <div id="game-interface">
-        <div class="chess-clocks">
-            <div id="clock-X" class="clock">
-                <div class="player-label blue-text">لاعب X (أزرق)</div>
-                <div id="time-X" class="time-display blue-text">00:00</div>
+    <div id="game-interface" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 1000; overflow-y: auto; padding: 20px;">
+        <button class="back-button" onclick="goBackToMenu()" style="position: fixed; top: 20px; right: 20px; z-index: 1001;">← العودة</button>
+        <div style="max-width: 600px; margin: 0 auto; padding-top: 60px;">
+            <div class="chess-clocks">
+                <div id="clock-X" class="clock">
+                    <div class="player-label blue-text">لاعب X (أزرق)</div>
+                    <div id="time-X" class="time-display blue-text">00:00</div>
+                </div>
+                <div id="clock-O" class="clock">
+                    <div class="player-label red-text">لاعب O (أحمر)</div>
+                    <div id="time-O" class="time-display red-text">00:00</div>
+                </div>
             </div>
-            <div id="clock-O" class="clock">
-                <div class="player-label red-text">لاعب O (أحمر)</div>
-                <div id="time-O" class="time-display red-text">00:00</div>
-            </div>
-        </div>
 
-        <div id="board" class="board"></div>
-        <div class="status-bar" id="status">دور اللاعب X</div>
-        <button onclick="resetGame()" style="width:100%; margin-top:20px; font-size: 1rem; padding: 8px;">انسحاب وإعادة</button>
+            <div id="board" class="board"></div>
+            <div class="status-bar" id="status">دور اللاعب X</div>
+            <button class="xo-button" onclick="resetXOGame()" style="width:100%; margin-top:20px; font-size: 1rem; padding: 8px;">انسحاب وإعادة</button>
+        </div>
     </div>
 
     <!-- End Game Overlay -->
     <div id="overlay">
         <h2 id="winner-text">فاز X!</h2>
         <p id="insult"></p>
-        <button onclick="location.reload()">العودة للقائمة</button>
+        <button class="xo-button" onclick="goBackToMenu()" style="margin-top: 20px;">العودة للقائمة الرئيسية</button>
     </div>
 
     <script>
@@ -249,7 +632,6 @@
         let timers = { X: 0, O: 0 };
         let timerInterval;
 
-        // قواميس العبارات المستفزة حسب نوع الخسارة واللفل
         const timeoutInsults = [
             "انتهى الوقت يا بطيء.. اذهب للعب السلم والثعبان أفضل لك!",
             "هل كنت نائماً؟ حتى السلحفاة أسرع منك في اتخاذ القرار!",
@@ -271,7 +653,15 @@
             "Error 404: كرامتك غير موجودة بعد هذه الخسارة المهينة."
         ];
 
-        function startGame() {
+        function goBackToMenu() {
+            document.getElementById('setup-screen').style.display = 'none';
+            document.getElementById('game-interface').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+            isGameActive = false;
+            if (timerInterval) clearInterval(timerInterval);
+        }
+
+        function startXOGame() {
             mode = document.getElementById('game-mode').value;
             const minutes = parseFloat(document.getElementById('time-input').value);
             timers.X = minutes * 60;
@@ -309,16 +699,14 @@
             const targetPlayer = board[index];
             const isBoardFull = board.every(cell => cell !== '');
 
-            // منطق طور الهاكرز (عندما تمتلئ اللوحة)
             if (mode === 'hacker' && isBoardFull) {
-                // يسمح فقط بمسح حجر الخصم وضع حجره مكانه
                 if (targetPlayer !== '' && targetPlayer !== currentPlayer) {
                     board[index] = currentPlayer;
                     cells[index].textContent = currentPlayer;
                     cells[index].className = `cell ${currentPlayer.toLowerCase()}`;
                     
                     if (checkWin()) {
-                        endGame(false);
+                        endXOGame(false);
                     } else {
                         switchPlayer();
                     }
@@ -326,7 +714,6 @@
                 return; 
             }
 
-            // اللعب العادي في المربعات الفارغة فقط
             if (board[index] !== '') return;
 
             board[index] = currentPlayer;
@@ -334,9 +721,9 @@
             cells[index].classList.add(currentPlayer.toLowerCase());
 
             if (checkWin()) {
-                endGame(false);
+                endXOGame(false);
             } else if (board.every(cell => cell !== '') && mode !== 'hacker') {
-                endGame(true);
+                endXOGame(true);
             } else {
                 switchPlayer();
             }
@@ -402,19 +789,16 @@
 
         function getWinConditions(size) {
             const conditions = [];
-            // الصفوف
             for (let i = 0; i < size; i++) {
                 const row = [];
                 for (let j = 0; j < size; j++) row.push(i * size + j);
                 conditions.push(row);
             }
-            // الأعمدة
             for (let i = 0; i < size; i++) {
                 const col = [];
                 for (let j = 0; j < size; j++) col.push(j * size + i);
                 conditions.push(col);
             }
-            // الأقطار
             const diag1 = [], diag2 = [];
             for (let i = 0; i < size; i++) {
                 diag1.push(i * size + i);
@@ -429,7 +813,7 @@
             indices.forEach(i => cells[i].classList.add('win-glow'));
         }
 
-        function endGame(draw) {
+        function endXOGame(draw) {
             isGameActive = false;
             clearInterval(timerInterval);
             const overlay = document.getElementById('overlay');
@@ -444,7 +828,6 @@
                 winText.textContent = `سحقاً لكم.. الفوز للاعب ${currentPlayer}!`;
                 winText.style.color = currentPlayer === 'X' ? 'var(--neon-blue)' : 'var(--neon-red)';
                 
-                // اختيار عبارة الإهانة المناسبة بناءً على رتبة الفوز الحالية
                 if (mode === '3') {
                     insult.textContent = "فوز عادي جداً.. جرب لفل المحترفين لو كنت تملك الجرأة.";
                 } else if (mode === '4') {
@@ -456,9 +839,10 @@
             overlay.style.display = 'flex';
         }
 
-        function resetGame() {
-            location.reload();
+        function resetXOGame() {
+            goBackToMenu();
         }
     </script>
+
 </body>
 </html>
