@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drift Master Pro - لعبة الانجراف الاحترافية</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%);
+            color: #00ff00;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .game-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        #gameCanvas {
+            flex: 1;
+            background: linear-gradient(to bottom, #0a1428 0%, #1a2a4a 100%);
+            display: block;
+        }
+
+        .sidebar {
+            width: 320px;
+            background: rgba(10, 10, 10, 0.95);
+            border-left: 2px solid #00ff00;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: rgba(0, 255, 0, 0.1);
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #00ff00;
+            border-radius: 3px;
+        }
+
+        .panel {
+            background: rgba(0, 255, 0, 0.05);
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 15px;
+            font-size: 0.85rem;
+        }
+
+        .panel h3 {
+            color: #00ff00;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #00ff00;
+            padding-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.9rem;
+        }
+
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .stat-label {
+            color: #aaa;
+        }
+
+        .stat-value {
+            color: #00ff00;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+
+        .stat-warning {
+            color: #ff0000;
+        }
+
+        .slider-group {
+            margin-bottom: 12px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.8rem;
+        }
+
+        .slider-label span {
+            color: #00ff00;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(0, 255, 0, 0.2);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #00ff00;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #00ff00;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        button {
+            flex: 1;
+            padding: 8px;
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            cursor: pointer;
+            border-radius: 3px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: rgba(0, 255, 0, 0.4);
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .combo-counter {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 100, 0, 0.1);
+            border: 2px solid #ff6400;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .combo-number {
+            font-size: 2em;
+            color: #ff6400;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+
+        .combo-label {
+            color: #aaa;
+            font-size: 0.8rem;
+        }
+
+        .warning-box {
+            background: rgba(255, 0, 0, 0.1);
+            border-left: 3px solid #ff0000;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            color: #ff9999;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 280px;
+            }
+
+            .panel {
+                padding: 12px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                flex-direction: column;
+            }
+
+            #gameCanvas {
+                height: 60vh;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: 40vh;
+                border-left: none;
+                border-top: 2px solid #00ff00;
+            }
+        }
+
+        .drift-indicator {
+            text-align: center;
+            color: #ff6400;
+            font-weight: bold;
+            margin: 10px 0;
+            font-size: 1.1em;
+            text-shadow: 0 0 10px rgba(255, 100, 0, 0.5);
+        }
+
+        .performance-bar {
+            height: 6px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 4px 0;
+        }
+
+        .performance-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff00, #ff6400);
+            width: 0%;
+            transition: width 0.1s;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div class="sidebar">
+            <!-- Score Panel -->
+            <div class="panel">
+                <h3>📊 الإحصائيات</h3>
+                <div class="stat">
+                    <span class="stat-label">الدرجة:</span>
+                    <span class="stat-value" id="scoreDisplay">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">السرعة:</span>
+                    <span class="stat-value" id="speedDisplay">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">زاوية الانجراف:</span>
+                    <span class="stat-value" id="angleDisplay">0°</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">الانزلاق الجانبي:</span>
+                    <span class="stat-value" id="slipDisplay">0%</span>
+                </div>
+            </div>
+
+            <!-- Combo Panel -->
+            <div class="combo-counter">
+                <div class="combo-number" id="comboDisplay">0x</div>
+                <div class="combo-label">COMBO MULTIPLIER</div>
+            </div>
+
+            <!-- Vehicle Physics -->
+            <div class="panel">
+                <h3>⚙️ إعدادات المركبة</h3>
+                
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>قوة التسارع</span>
+                        <span id="accelValue">100%</span>
+                    </div>
+                    <input type="range" id="accelSlider" min="50" max="200" value="100" step="10">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>قوة الكبح</span>
+                        <span id="brakeValue">100%</span>
+                    </div>
+                    <input type="range" id="brakeSlider" min="50" max="200" value="100" step="10">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>حساسية التوجيه</span>
+                        <span id="steeringValue">100%</span>
+                    </div>
+                    <input type="range" id="steeringSlider" min="50" max="150" value="100" step="10">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>مرونة الإطارات</span>
+                        <span id="gripValue">100%</span>
+                    </div>
+                    <input type="range" id="gripSlider" min="50" max="150" value="100" step="10">
+                </div>
+
+                <div class="button-group">
+                    <button onclick="resetVehicleSettings()">إعادة تعيين</button>
+                </div>
+            </div>
+
+            <!-- Performance Bars -->
+            <div class="panel">
+                <h3>📈 الأداء</h3>
+                
+                <div>
+                    <div class="stat-label">السرعة القصوى</div>
+                    <div class="performance-bar">
+                        <div class="performance-fill" id="topSpeedBar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="stat-label">التسارع</div>
+                    <div class="performance-bar">
+                        <div class="performance-fill" id="accelBar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="stat-label">جودة الانزلاق</div>
+                    <div class="performance-bar">
+                        <div class="performance-fill" id="driftQualityBar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Drift Status -->
+            <div class="panel">
+                <h3>🌀 حالة الانجراف</h3>
+                <div class="drift-indicator" id="driftStatus">جاهز للانجراف</div>
+                <div id="driftWarning" class="warning-box" style="display: none;"></div>
+            </div>
+
+            <!-- Controls Info -->
+            <div class="panel">
+                <h3>🎮 التحكم</h3>
+                <div style="font-size: 0.75rem; line-height: 1.6; color: #aaa;">
+                    <p><strong style="color: #00ff00;">W</strong> - تقدم</p>
+                    <p><strong style="color: #00ff00;">S</strong> - خلف</p>
+                    <p><strong style="color: #00ff00;">A/D</strong> - توجيه</p>
+                    <p><strong style="color: #00ff00;">Space</strong> - مكابح</p>
+                    <p><strong style="color: #00ff00;">Shift</strong> - توربو</p>
+                </div>
+            </div>
+
+            <!-- Reset Game -->
+            <div class="button-group">
+                <button onclick="resetGame()" style="flex: 1;">إعادة تعيين اللعبة</button>
+                <button onclick="goHome()" style="flex: 1;">الرئيسية</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== Game Engine =====
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set canvas size
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // ===== Vehicle Class =====
+        class Vehicle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.vx = 0;
+                this.vy = 0;
+                this.angle = 0;
+                this.angularVelocity = 0;
+                
+                // Physics
+                this.acceleration = 0.15;
+                this.maxSpeed = 8;
+                this.friction = 0.98;
+                this.steeringLock = 0;
+                this.steeringSpeed = 0.1;
+                this.brakePower = 0.2;
+                
+                // Drift
+                this.wheelAngle = 0;
+                this.isDrifting = false;
+                this.driftAngle = 0;
+                this.wheelSlip = 0;
+                
+                // Dimensions
+                this.width = 20;
+                this.height = 40;
+                
+                // Smoke particles
+                this.particles = [];
+            }
+
+            update(keys, settings) {
+                // Apply settings
+                this.acceleration = 0.15 * (settings.accel / 100);
+                this.brakePower = 0.2 * (settings.brake / 100);
+                const steeringSpeedMultiplier = settings.steering / 100;
+                const gripMultiplier = settings.grip / 100;
+                
+                // Input handling
+                let targetSteeringLock = 0;
+                if (keys['a'] || keys['A']) targetSteeringLock = 60 * (Math.PI / 180);
+                if (keys['d'] || keys['D']) targetSteeringLock = -60 * (Math.PI / 180);
+                
+                this.steeringLock += (targetSteeringLock - this.steeringLock) * this.steeringSpeed * steeringSpeedMultiplier;
+                
+                // Acceleration
+                if (keys['w'] || keys['W']) {
+                    this.vx += Math.cos(this.angle) * this.acceleration;
+                    this.vy += Math.sin(this.angle) * this.acceleration;
+                }
+                
+                // Reverse
+                if (keys['s'] || keys['S']) {
+                    this.vx -= Math.cos(this.angle) * this.acceleration * 0.5;
+                    this.vy -= Math.sin(this.angle) * this.acceleration * 0.5;
+                }
+                
+                // Brakes - Transfer weight to front wheels
+                if (keys[' ']) {
+                    const brakeForce = Math.sqrt(this.vx * this.vx + this.vy * this.vy) * this.brakePower;
+                    this.vx *= (1 - this.brakePower);
+                    this.vy *= (1 - this.brakePower);
+                    
+                    // Increase drift potential when braking
+                    this.wheelSlip = Math.min(1, this.wheelSlip + 0.15);
+                }
+                
+                // Turbo
+                if (keys['Shift']) {
+                    this.vx *= 1.02;
+                    this.vy *= 1.02;
+                }
+                
+                // Calculate current velocity magnitude and angle
+                const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+                const velocityAngle = Math.atan2(this.vy, this.vx);
+                
+                // Drift angle calculation
+                this.driftAngle = Math.abs(this.angle - velocityAngle);
+                if (this.driftAngle > Math.PI) this.driftAngle = 2 * Math.PI - this.driftAngle;
+                
+                // Detect drifting
+                const driftThreshold = 0.3;
+                this.isDrifting = this.driftAngle > driftThreshold && speed > 2;
+                
+                // Calculate wheel slip
+                if (this.isDrifting) {
+                    this.wheelSlip = Math.min(1, this.wheelSlip + 0.1);
+                } else {
+                    this.wheelSlip = Math.max(0, this.wheelSlip - 0.08);
+                }
+                
+                // Counter-steering (auto-correction)
+                if (this.isDrifting && speed > 1) {
+                    const steeringCorrection = (this.driftAngle > 0 ? -1 : 1) * 0.05 * this.driftAngle;
+                    this.angularVelocity += steeringCorrection;
+                }
+                
+                // Apply steering to angular velocity
+                this.angularVelocity += this.steeringLock * 0.1;
+                this.angularVelocity *= 0.92; // Damping
+                
+                // Update angle
+                this.angle += this.angularVelocity;
+                
+                // Apply friction
+                this.vx *= this.friction;
+                this.vy *= this.friction;
+                
+                // Speed limit
+                if (speed > this.maxSpeed) {
+                    const scale = this.maxSpeed / speed;
+                    this.vx *= scale;
+                    this.vy *= scale;
+                }
+                
+                // Update position
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                // Boundary wrap
+                if (this.x < -this.width) this.x = canvas.width + this.width;
+                if (this.x > canvas.width + this.width) this.x = -this.width;
+                if (this.y < -this.height) this.y = canvas.height + this.height;
+                if (this.y > canvas.height + this.height) this.y = -this.height;
+                
+                // Update particles
+                this.updateParticles();
+            }
+
+            updateParticles() {
+                if (this.isDrifting && this.wheelSlip > 0.3) {
+                    // Generate smoke particles
+                    for (let i = 0; i < 2; i++) {
+                        const angle = this.angle + (Math.random() - 0.5) * Math.PI;
+                        this.particles.push({
+                            x: this.x - Math.cos(this.angle) * 15,
+                            y: this.y - Math.sin(this.angle) * 15,
+                            vx: Math.cos(angle) * (Math.random() - 0.5) * 2,
+                            vy: Math.sin(angle) * (Math.random() - 0.5) * 2,
+                            life: 1,
+                            size: 5 + Math.random() * 10
+                        });
+                    }
+                }
+                
+                // Update and remove dead particles
+                this.particles = this.particles.filter(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy -= 0.1; // Float upward
+                    p.life -= 0.02;
+                    return p.life > 0;
+                });
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+                
+                // Draw car body
+                ctx.fillStyle = '#00ff00';
+                ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+                
+                // Draw drift indicator
+                if (this.isDrifting) {
+                    ctx.strokeStyle = '#ff6400';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(-this.width / 2 - 2, -this.height / 2 - 2, this.width + 4, this.height + 4);
+                }
+                
+                // Draw direction indicator
+                ctx.strokeStyle = '#0099ff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(0, -this.height / 2 - 10);
+                ctx.stroke();
+                
+                ctx.restore();
+                
+                // Draw particles
+                this.particles.forEach(p => {
+                    ctx.globalAlpha = p.life * 0.5;
+                    ctx.fillStyle = '#ff6400';
+                    ctx.fillRect(p.x, p.y, p.size, p.size);
+                });
+                ctx.globalAlpha = 1;
+            }
+
+            getSpeed() {
+                return Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+            }
+        }
+
+        // ===== Game State =====
+        const vehicle = new Vehicle(canvas.width / 2, canvas.height / 2);
+        let keys = {};
+        let score = 0;
+        let combo = 0;
+        let comboTimeout = 0;
+        
+        const settings = {
+            accel: 100,
+            brake: 100,
+            steering: 100,
+            grip: 100
+        };
+
+        // Keyboard input
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        // Settings sliders
+        document.getElementById('accelSlider').addEventListener('input', (e) => {
+            settings.accel = parseInt(e.target.value);
+            document.getElementById('accelValue').textContent = e.target.value + '%';
+        });
+
+        document.getElementById('brakeSlider').addEventListener('input', (e) => {
+            settings.brake = parseInt(e.target.value);
+            document.getElementById('brakeValue').textContent = e.target.value + '%';
+        });
+
+        document.getElementById('steeringSlider').addEventListener('input', (e) => {
+            settings.steering = parseInt(e.target.value);
+            document.getElementById('steeringValue').textContent = e.target.value + '%';
+        });
+
+        document.getElementById('gripSlider').addEventListener('input', (e) => {
+            settings.grip = parseInt(e.target.value);
+            document.getElementById('gripValue').textContent = e.target.value + '%';
+        });
+
+        // ===== Game Loop =====
+        function gameLoop() {
+            // Clear canvas
+            ctx.fillStyle = '#0a1428';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw grid background
+            ctx.strokeStyle = 'rgba(0, 255, 0, 0.05)';
+            ctx.lineWidth = 1;
+            const gridSize = 50;
+            for (let x = 0; x < canvas.width; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // Update vehicle
+            vehicle.update(keys, settings);
+            vehicle.draw(ctx);
+            
+            // Score calculation
+            if (vehicle.isDrifting) {
+                const driftScore = vehicle.driftAngle * vehicle.getSpeed() * (combo + 1) * 10;
+                score += driftScore;
+                comboTimeout = 60; // Reset timeout
+                
+                if (combo === 0) {
+                    combo = 1;
+                } else {
+                    combo += 0.1;
+                }
+            } else {
+                comboTimeout--;
+                if (comboTimeout <= 0) {
+                    combo = Math.max(0, combo - 0.05);
+                }
+            }
+            
+            // Update UI
+            document.getElementById('scoreDisplay').textContent = Math.floor(score).toLocaleString();
+            document.getElementById('speedDisplay').textContent = vehicle.getSpeed().toFixed(1);
+            document.getElementById('angleDisplay').textContent = Math.round(vehicle.driftAngle * 180 / Math.PI) + '°';
+            document.getElementById('slipDisplay').textContent = Math.round(vehicle.wheelSlip * 100) + '%';
+            document.getElementById('comboDisplay').textContent = Math.round(combo) + 'x';
+            
+            // Update performance bars
+            const maxSpeed = vehicle.maxSpeed;
+            const currentSpeed = vehicle.getSpeed();
+            document.getElementById('topSpeedBar').style.width = (currentSpeed / maxSpeed * 100) + '%';
+            document.getElementById('accelBar').style.width = (Math.abs(vehicle.vx + vehicle.vy) / 0.3 * 100) + '%';
+            document.getElementById('driftQualityBar').style.width = (vehicle.isDrifting ? vehicle.driftAngle / 1 * 100 : 0) + '%';
+            
+            // Update drift status
+            const driftStatus = document.getElementById('driftStatus');
+            const driftWarning = document.getElementById('driftWarning');
+            
+            if (vehicle.isDrifting) {
+                driftStatus.textContent = '🌀 في الانجراف!';
+                driftStatus.style.color = '#ff6400';
+                driftWarning.style.display = 'none';
+            } else {
+                driftStatus.textContent = '✓ جاهز للانجراف';
+                driftStatus.style.color = '#00ff00';
+                
+                if (currentSpeed > 3 && !vehicle.isDrifting) {
+                    driftWarning.textContent = '⚠️ استخدم المكابح والتوجيه لبدء الانجراف!';
+                    driftWarning.style.display = 'block';
+                } else {
+                    driftWarning.style.display = 'none';
+                }
+            }
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        // ===== Game Controls =====
+        function resetGame() {
+            vehicle.x = canvas.width / 2;
+            vehicle.y = canvas.height / 2;
+            vehicle.vx = 0;
+            vehicle.vy = 0;
+            vehicle.angle = 0;
+            vehicle.angularVelocity = 0;
+            score = 0;
+            combo = 0;
+            comboTimeout = 0;
+        }
+
+        function resetVehicleSettings() {
+            settings.accel = 100;
+            settings.brake = 100;
+            settings.steering = 100;
+            settings.grip = 100;
+            
+            document.getElementById('accelSlider').value = 100;
+            document.getElementById('brakeSlider').value = 100;
+            document.getElementById('steeringSlider').value = 100;
+            document.getElementById('gripSlider').value = 100;
+            
+            document.getElementById('accelValue').textContent = '100%';
+            document.getElementById('brakeValue').textContent = '100%';
+            document.getElementById('steeringValue').textContent = '100%';
+            document.getElementById('gripValue').textContent = '100%';
+        }
+
+        function goHome() {
+            window.location.href = 'index.html';
+        }
+
+        // Start game loop
+        gameLoop();
+    </script>
+</body>
+</html>
