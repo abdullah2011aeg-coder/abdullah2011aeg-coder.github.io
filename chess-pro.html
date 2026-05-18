@@ -94,6 +94,9 @@
             box-shadow: 0 10px 40px rgba(0,0,0,0.5);
             aspect-ratio: 1;
             max-width: 600px;
+            position: relative;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         .square {
@@ -103,7 +106,6 @@
             position: relative;
             cursor: pointer;
             user-select: none;
-            font-size: 3.5vw;
             aspect-ratio: 1;
             transition: all 0.15s ease;
         }
@@ -121,25 +123,35 @@
             box-shadow: inset 0 0 15px rgba(0,0,0,0.2);
         }
 
-        .square.hint::after {
-            content: '';
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            background: radial-gradient(circle, #5a5a5a 30%, transparent 70%);
-            border-radius: 50%;
-            z-index: 1;
+        .hint {
+            position: relative;
         }
 
-        .square.hint-capture::after {
+        .hint::after {
             content: '';
             position: absolute;
             width: 20px;
             height: 20px;
-            background: transparent;
-            border: 4px solid #5a5a5a;
+            background: radial-gradient(circle, #6b6b6b 40%, transparent 70%);
             border-radius: 50%;
             z-index: 1;
+            pointer-events: none;
+        }
+
+        .hint-capture {
+            position: relative;
+        }
+
+        .hint-capture::before {
+            content: '';
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            background: transparent;
+            border: 4px solid #6b6b6b;
+            border-radius: 50%;
+            z-index: 1;
+            pointer-events: none;
         }
 
         .square.last-move {
@@ -152,14 +164,41 @@
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
             transition: transform 0.1s ease;
             z-index: 2;
+            font-size: 3.5vw;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
         }
 
         .piece:hover {
-            transform: scale(1.1);
+            transform: scale(1.05);
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
         }
 
         .piece:active {
             cursor: grabbing;
+        }
+
+        .piece.dragging {
+            opacity: 0.5;
+            z-index: 10;
+        }
+
+        .ghost-piece {
+            position: fixed;
+            pointer-events: none;
+            z-index: 1000;
+            font-size: 3.5vw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
+            opacity: 0.8;
         }
 
         .sidebar {
@@ -229,6 +268,10 @@
             background: rgba(255,0,0,0.1);
             border-radius: 4px;
             border: 1px solid rgba(255,0,0,0.2);
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .buttons {
@@ -284,12 +327,14 @@
 
         .difficulty-selector {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             margin-bottom: 15px;
+            flex-wrap: wrap;
         }
 
         .difficulty-btn {
             flex: 1;
+            min-width: 45px;
             padding: 8px;
             border: 2px solid rgba(255,255,255,0.2);
             background: transparent;
@@ -297,6 +342,7 @@
             border-radius: 4px;
             cursor: pointer;
             transition: all 0.3s ease;
+            font-size: 0.8em;
         }
 
         .difficulty-btn.active {
@@ -361,10 +407,6 @@
                 max-width: 100%;
             }
 
-            .square {
-                font-size: 6vw;
-            }
-
             .sidebar {
                 order: -1;
             }
@@ -375,15 +417,6 @@
             color: #00ff00;
             font-style: italic;
             font-size: 0.9em;
-            margin-top: 10px;
-        }
-
-        .evaluation {
-            background: rgba(0,212,255,0.05);
-            padding: 10px;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85em;
             margin-top: 10px;
         }
     </style>
@@ -421,9 +454,11 @@
             <div class="panel">
                 <h3>مستوى الصعوبة</h3>
                 <div class="difficulty-selector">
-                    <button class="difficulty-btn active" onclick="setDifficulty(1)">سهل</button>
-                    <button class="difficulty-btn" onclick="setDifficulty(2)">متوسط</button>
-                    <button class="difficulty-btn" onclick="setDifficulty(3)">صعب</button>
+                    <button class="difficulty-btn active" onclick="setDifficulty(1)">1</button>
+                    <button class="difficulty-btn" onclick="setDifficulty(2)">2</button>
+                    <button class="difficulty-btn" onclick="setDifficulty(3)">3</button>
+                    <button class="difficulty-btn" onclick="setDifficulty(4)">4</button>
+                    <button class="difficulty-btn" onclick="setDifficulty(5)">5</button>
                 </div>
             </div>
 
@@ -469,7 +504,7 @@
     </div>
 
     <script>
-        // Chess Game Engine
+        // Chess Game Engine with Drag & Drop Support
         class ChessGame {
             constructor() {
                 this.board = [];
@@ -481,6 +516,7 @@
                 this.lastMove = null;
                 this.gameOver = false;
                 this.difficulty = 1;
+                this.boardSize = 8;
                 this.initializeBoard();
             }
 
@@ -647,8 +683,8 @@
 
                 const fromPos = String.fromCharCode(97 + fromCol) + (8 - fromRow);
                 const toPos = String.fromCharCode(97 + toCol) + (8 - toRow);
-                let moveStr = `${piece}${fromPos}${toPos}`;
-                if (target) moveStr += `x${target}`;
+                let moveStr = `${piece}${fromPos}→${toPos}`;
+                if (target) moveStr += `x`;
                 this.moveHistory.push(moveStr);
 
                 this.lastMove = { from: [fromRow, fromCol], to: [toRow, toCol] };
@@ -658,7 +694,6 @@
             }
 
             checkGameOver() {
-                // Simple checkmate detection
                 let hasValidMoves = false;
                 for (let i = 0; i < 8; i++) {
                     for (let j = 0; j < 8; j++) {
@@ -691,16 +726,16 @@
 
                 if (moves.length === 0) return null;
 
-                // Evaluate moves based on difficulty
                 const scored = moves.map(m => {
                     let score = Math.random() * 10;
                     const target = this.board[m.to[0]][m.to[1]];
-                    if (target) score += 50; // Capture is good
+                    if (target) score += 50;
                     return { ...m, score };
                 });
 
                 scored.sort((a, b) => b.score - a.score);
-                const topMoves = scored.slice(0, Math.max(1, Math.floor(5 / this.difficulty)));
+                const topCount = Math.max(1, Math.floor(10 / this.difficulty));
+                const topMoves = scored.slice(0, topCount);
                 return topMoves[Math.floor(Math.random() * topMoves.length)];
             }
 
@@ -718,6 +753,8 @@
 
         let game = new ChessGame();
         let difficulty = 1;
+        let draggedElement = null;
+        let draggedFrom = null;
 
         function setDifficulty(level) {
             difficulty = level;
@@ -736,6 +773,8 @@
                     const square = document.createElement('div');
                     const isLight = (i + j) % 2 === 0;
                     square.className = `square ${isLight ? 'light' : 'dark'}`;
+                    square.dataset.row = i;
+                    square.dataset.col = j;
 
                     if (game.selectedSquare && game.selectedSquare[0] === i && game.selectedSquare[1] === j) {
                         square.classList.add('selected');
@@ -756,10 +795,21 @@
                         const pieceEl = document.createElement('div');
                         pieceEl.className = 'piece';
                         pieceEl.textContent = game.getPieceSymbol(piece);
+                        pieceEl.draggable = true;
+                        pieceEl.dataset.piece = piece;
+                        pieceEl.dataset.row = i;
+                        pieceEl.dataset.col = j;
+
+                        pieceEl.addEventListener('dragstart', handleDragStart);
+                        pieceEl.addEventListener('dragend', handleDragEnd);
+
                         square.appendChild(pieceEl);
                     }
 
+                    square.addEventListener('dragover', handleDragOver);
+                    square.addEventListener('drop', handleDrop);
                     square.addEventListener('click', () => handleSquareClick(i, j));
+
                     board.appendChild(square);
                 }
             }
@@ -767,6 +817,67 @@
             updateStatus();
             updateMovesList();
             updateCapturedPieces();
+        }
+
+        function handleDragStart(e) {
+            if (game.gameOver || game.currentPlayer === 'black') {
+                e.preventDefault();
+                return;
+            }
+
+            const row = parseInt(e.target.dataset.row);
+            const col = parseInt(e.target.dataset.col);
+            const piece = game.board[row][col];
+
+            if (piece && piece === piece.toUpperCase()) {
+                draggedElement = e.target;
+                draggedFrom = [row, col];
+                game.selectedSquare = [row, col];
+                game.possibleMoves = game.getPossibleMoves(row, col);
+
+                e.target.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+
+                renderBoard();
+            }
+        }
+
+        function handleDragEnd(e) {
+            if (draggedElement) {
+                draggedElement.classList.remove('dragging');
+            }
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+
+            if (!draggedFrom) return;
+
+            const toRow = parseInt(e.target.closest('.square').dataset.row);
+            const toCol = parseInt(e.target.closest('.square').dataset.col);
+            const fromRow = draggedFrom[0];
+            const fromCol = draggedFrom[1];
+
+            if (game.getPossibleMoves(fromRow, fromCol).some(m => m[0] === toRow && m[1] === toCol)) {
+                game.movePiece(fromRow, fromCol, toRow, toCol);
+                game.selectedSquare = null;
+                game.possibleMoves = [];
+                renderBoard();
+
+                if (!game.gameOver) {
+                    setTimeout(makeBotMove, 500);
+                } else {
+                    showGameOver();
+                }
+            }
+
+            draggedFrom = null;
+            draggedElement = null;
         }
 
         function handleSquareClick(row, col) {
@@ -876,15 +987,9 @@
         }
 
         function undoMove() {
-            if (game.moveHistory.length >= 2) {
+            if (game.moveHistory.length > 0) {
                 game.reset();
-                const tempHistory = [...game.moveHistory];
-                game.moveHistory = [];
-                // Replay moves except last two
-                for (let i = 0; i < tempHistory.length - 2; i++) {
-                    // This is simplified - full implementation would replay actual moves
-                }
-                renderBoard();
+                // Note: Full undo would need to replay moves
             }
         }
 
@@ -892,7 +997,6 @@
             window.location.href = 'index.html';
         }
 
-        // Initialize
         renderBoard();
     </script>
 </body>
