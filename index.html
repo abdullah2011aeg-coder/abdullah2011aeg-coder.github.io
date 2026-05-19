@@ -15,22 +15,34 @@
             --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+        }
 
         body {
             background: linear-gradient(135deg, #0a0a0c 0%, #1a0a2e 50%, #0a0a0c 100%);
             color: var(--text-color);
             font-family: var(--font-main);
-            min-height: 100vh;
-            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
-        .main-container {
+        /* ===== MAIN MENU ===== */
+        #main-menu {
+            width: 100%;
+            height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
             padding: 20px;
             gap: 40px;
         }
@@ -49,7 +61,6 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            text-shadow: 0 0 20px rgba(0, 242, 255, 0.5);
             animation: glow 2s ease-in-out infinite;
         }
 
@@ -67,10 +78,11 @@
 
         .games-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 30px;
-            max-width: 1200px;
+            max-width: 1400px;
             width: 100%;
+            padding: 0 20px;
         }
 
         .game-card {
@@ -192,14 +204,13 @@
             z-index: 1;
             box-shadow: 0 5px 20px rgba(0, 242, 255, 0.3);
             text-decoration: none;
-            display: inline-block;
+            display: block;
             width: 100%;
         }
 
         .play-btn:hover {
             transform: scale(1.05);
             box-shadow: 0 8px 30px rgba(0, 242, 255, 0.5);
-            background: linear-gradient(45deg, #00d4ff, var(--neon-blue));
         }
 
         .play-btn:active {
@@ -226,30 +237,19 @@
             background: linear-gradient(45deg, #ff8800, #ff6400);
         }
 
-        .footer {
-            text-align: center;
-            margin-top: 50px;
-            padding: 20px;
-            color: #666;
-            border-top: 1px solid #333;
-            width: 100%;
+        .chess-btn {
+            background: linear-gradient(45deg, var(--neon-green), #00ff33);
+            box-shadow: 0 5px 20px rgba(0, 255, 0, 0.3);
+            color: #000;
         }
 
-        .footer p {
-            margin: 5px 0;
-            font-size: 0.9rem;
-        }
-
-        .made-by {
-            font-weight: bold;
-            color: var(--neon-blue);
-            text-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
+        .chess-btn:hover {
+            box-shadow: 0 8px 30px rgba(0, 255, 0, 0.5);
+            background: linear-gradient(45deg, #00ff33, var(--neon-green));
         }
 
         .badge {
             display: inline-block;
-            background: var(--neon-green);
-            color: black;
             padding: 3px 10px;
             border-radius: 20px;
             font-size: 0.7rem;
@@ -259,13 +259,321 @@
             z-index: 1;
         }
 
-        .new-badge {
+        .badge-new {
+            background: var(--neon-green);
+            color: black;
             animation: pulse 1s ease-in-out infinite;
+        }
+
+        .badge-old {
+            background: #ff6b6b;
+            color: white;
         }
 
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.1); }
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            border-top: 1px solid #333;
+            width: 100%;
+            margin-top: auto;
+        }
+
+        .made-by {
+            font-weight: bold;
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
+        }
+
+        /* ===== X-O GAME SCREEN ===== */
+        #xo-screen {
+            display: none;
+            width: 100%;
+            height: 100vh;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        #xo-screen.show {
+            display: flex;
+        }
+
+        .xo-container {
+            width: 100vw;
+            max-width: 700px;
+            padding: 20px;
+        }
+
+        .back-btn-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1005;
+        }
+
+        .back-btn {
+            background: var(--neon-red);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 0, 85, 0.3);
+        }
+
+        .back-btn:hover {
+            background: #ff0080;
+            box-shadow: 0 8px 20px rgba(255, 0, 85, 0.5);
+            transform: scale(1.05);
+        }
+
+        .setup-menu {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 15px;
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+            text-align: center;
+            width: 100%;
+        }
+
+        .setup-menu h2 {
+            color: var(--neon-blue);
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            text-align: right;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: var(--text-color);
+            font-size: 1.1rem;
+        }
+
+        .form-group select,
+        .form-group input {
+            background: #222;
+            color: white;
+            border: 2px solid var(--neon-blue);
+            padding: 12px 15px;
+            border-radius: 8px;
+            width: 100%;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: var(--font-main);
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            border-color: var(--neon-green);
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+        }
+
+        .start-game-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.3rem;
+            margin-top: 30px;
+        }
+
+        .game-interface {
+            width: 100%;
+            padding: 20px;
+            display: none;
+        }
+
+        .game-interface.show {
+            display: block;
+        }
+
+        .clocks-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            justify-content: space-between;
+        }
+
+        .clock {
+            flex: 1;
+            padding: 20px;
+            background: #111;
+            border-radius: 12px;
+            text-align: center;
+            border: 3px solid #333;
+            transition: all 0.3s ease;
+        }
+
+        .clock.active-blue {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 20px var(--neon-blue);
+        }
+
+        .clock.active-red {
+            border-color: var(--neon-red);
+            box-shadow: 0 0 20px var(--neon-red);
+        }
+
+        .player-label {
+            font-size: 1rem;
+            margin-bottom: 8px;
+            opacity: 0.8;
+            font-weight: bold;
+        }
+
+        .time-display {
+            font-size: 2.5rem;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .board-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            border: 2px solid #333;
+        }
+
+        .board {
+            display: grid;
+            gap: 12px;
+            margin: 0 auto;
+            max-width: 500px;
+        }
+
+        .cell {
+            background: rgba(255, 255, 255, 0.08);
+            aspect-ratio: 1/1;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid #333;
+            user-select: none;
+        }
+
+        .cell:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: var(--neon-blue);
+        }
+
+        .cell.x {
+            color: var(--neon-blue);
+            text-shadow: 0 0 15px var(--neon-blue);
+        }
+
+        .cell.o {
+            color: var(--neon-red);
+            text-shadow: 0 0 15px var(--neon-red);
+        }
+
+        .cell.win-glow {
+            animation: win-pulse 0.5s infinite alternate;
+            background: rgba(0, 255, 0, 0.2);
+            border-color: var(--neon-green);
+        }
+
+        @keyframes win-pulse {
+            from { transform: scale(1); filter: brightness(1); }
+            to { transform: scale(1.05); filter: brightness(1.3); }
+        }
+
+        .status-bar {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.3rem;
+            font-weight: bold;
+            min-height: 2em;
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        .game-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .game-buttons button {
+            flex: 1;
+            padding: 12px;
+            font-size: 1rem;
+        }
+
+        .reset-btn {
+            background: linear-gradient(45deg, #ff6400, #ff8800);
+            box-shadow: 0 5px 15px rgba(255, 100, 0, 0.3);
+        }
+
+        .reset-btn:hover {
+            box-shadow: 0 8px 25px rgba(255, 100, 0, 0.5);
+            background: linear-gradient(45deg, #ff8800, #ff6400);
+        }
+
+        /* ===== OVERLAY (END GAME) ===== */
+        #game-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #game-overlay.show {
+            display: flex;
+        }
+
+        #winner-text {
+            font-size: 3rem;
+            margin-bottom: 30px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        #insult {
+            font-size: 1.3rem;
+            font-style: italic;
+            margin-bottom: 40px;
+            max-width: 600px;
+            font-weight: bold;
+            line-height: 1.6;
+        }
+
+        #game-overlay .back-btn {
+            width: 200px;
         }
 
         @media (max-width: 768px) {
@@ -293,11 +601,32 @@
                 grid-template-columns: 1fr;
                 gap: 20px;
             }
+
+            .setup-menu {
+                padding: 20px;
+            }
+
+            .setup-menu h2 {
+                font-size: 1.8rem;
+            }
+
+            .time-display {
+                font-size: 2rem;
+            }
+
+            #winner-text {
+                font-size: 2rem;
+            }
+
+            #insult {
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="main-container">
+    <!-- ===== MAIN MENU ===== -->
+    <div id="main-menu">
         <div class="header">
             <h1>🎮 Abdullah Games 🎮</h1>
             <p class="subtitle">ألعاب مثيرة وتحديات ذهنية</p>
@@ -325,8 +654,8 @@
                         <span class="stat-label">لاعب</span>
                     </div>
                 </div>
-                <button class="play-btn xo-btn" onclick="startXOGame()">ابد�� اللعبة</button>
-                <span class="badge">الكلاسيكية</span>
+                <button class="play-btn xo-btn" onclick="showXOGame()">ابدأ اللعبة</button>
+                <span class="badge badge-old">⏱️ OLD</span>
             </div>
 
             <!-- Chess Game Card -->
@@ -350,8 +679,8 @@
                         <span class="stat-label">لاعب</span>
                     </div>
                 </div>
-                <a href="chess-game.html" class="play-btn" style="background: linear-gradient(45deg, var(--neon-green), #00ff33); box-shadow: 0 5px 20px rgba(0, 255, 0, 0.3);">ابدأ الشطرنج</a>
-                <span class="badge new-badge">🆕 جديد</span>
+                <a href="chess-game.html" class="play-btn chess-btn">ابدأ الشطرنج</a>
+                <span class="badge badge-new">🆕 NEW</span>
             </div>
 
             <!-- Racing Game Card -->
@@ -376,7 +705,7 @@
                     </div>
                 </div>
                 <a href="racing-3d.html" class="play-btn racing-btn">ابدأ السباق</a>
-                <span class="badge new-badge">🏆 جديد</span>
+                <span class="badge badge-new">🆕 NEW</span>
             </div>
         </div>
 
@@ -387,249 +716,81 @@
         </div>
     </div>
 
-    <!-- X-O Game Interface (Hidden initially) -->
-    <div id="setup-screen" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 12, 0.95); z-index: 1000; align-items: center; justify-content: center;">
-        <style>
-            #setup-screen {
-                text-align: center;
-                display: flex !important;
-            }
+    <!-- ===== X-O GAME SCREEN ===== -->
+    <div id="xo-screen">
+        <div class="back-btn-container">
+            <button class="back-btn" onclick="backToMenu()">← العودة للقائمة</button>
+        </div>
 
-            .menu-card {
-                background: var(--card-bg);
-                padding: 30px;
-                border-radius: 15px;
-                border: 1px solid #333;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            }
+        <div class="xo-container">
+            <!-- Setup Menu -->
+            <div id="xo-setup" class="setup-menu">
+                <h2>⚔️ X-O Ultimate ⚔️</h2>
+                
+                <div class="form-group">
+                    <label for="board-size">اختر حجم اللوحة:</label>
+                    <select id="board-size">
+                        <option value="3">3×3 (عادي)</option>
+                        <option value="4">4×4 (متوسط)</option>
+                        <option value="5">5×5 (صعب)</option>
+                        <option value="6">6×6 (محترف)</option>
+                        <option value="7">7×7 (نينجا)</option>
+                        <option value="8">8×8 (غيرمقهور)</option>
+                        <option value="9">9×9 (إلهي)</option>
+                        <option value="10">10×10 (شيطان)</option>
+                    </select>
+                </div>
 
-            .mode-selector, .time-selector {
-                margin-bottom: 20px;
-            }
+                <div class="form-group">
+                    <label for="time-input">وقت كل لاعب (بالدقائق):</label>
+                    <input type="number" id="time-input" value="1" min="0.5" step="0.5">
+                </div>
 
-            label { display: block; margin-bottom: 10px; font-weight: bold; }
+                <button class="play-btn xo-btn start-game-btn" onclick="startXOGame()">ابدأ المعركة 🎮</button>
+            </div>
 
-            select, input {
-                background: #222;
-                color: white;
-                border: 1px solid var(--neon-blue);
-                padding: 10px;
-                border-radius: 5px;
-                width: 100%;
-                font-size: 1rem;
-                outline: none;
-            }
-
-            .xo-button {
-                background: transparent;
-                color: var(--neon-blue);
-                border: 2px solid var(--neon-blue);
-                padding: 12px 30px;
-                font-size: 1.2rem;
-                cursor: pointer;
-                transition: 0.3s;
-                text-transform: uppercase;
-                font-weight: bold;
-                margin-top: 10px;
-                border-radius: 8px;
-            }
-
-            .xo-button:hover {
-                background: var(--neon-blue);
-                color: black;
-                box-shadow: 0 0 20px var(--neon-blue);
-            }
-
-            .board {
-                display: grid;
-                gap: 10px;
-                margin: 0 auto;
-                perspective: 1000px;
-            }
-
-            .cell {
-                background: rgba(255, 255, 255, 0.05);
-                aspect-ratio: 1/1;
-                border-radius: 8px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 3rem;
-                font-weight: bold;
-                cursor: pointer;
-                transition: 0.2s;
-                border: 1px solid #222;
-                position: relative;
-                user-select: none;
-            }
-
-            .cell:hover { background: rgba(255, 255, 255, 0.1); }
-            .cell.x { color: var(--neon-blue); text-shadow: 0 0 15px var(--neon-blue); }
-            .cell.o { color: var(--neon-red); text-shadow: 0 0 15px var(--neon-red); }
-
-            .clock {
-                flex: 1;
-                padding: 15px;
-                background: #111;
-                border-radius: 10px;
-                text-align: center;
-                border: 2px solid #333;
-                transition: 0.3s;
-            }
-
-            .clock.active-blue { border-color: var(--neon-blue); box-shadow: 0 0 15px var(--neon-blue); }
-            .clock.active-red { border-color: var(--neon-red); box-shadow: 0 0 15px var(--neon-red); }
-
-            .time-display {
-                font-size: 2.5rem;
-                font-family: 'Courier New', Courier, monospace;
-                font-weight: bold;
-            }
-
-            .player-label { font-size: 0.8rem; margin-bottom: 5px; opacity: 0.7; }
-
-            .blue-text { color: var(--neon-blue); }
-            .red-text { color: var(--neon-red); }
-
-            .warning { animation: blink 0.5s infinite; color: #ff0000 !important; }
-
-            @keyframes blink {
-                0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; }
-            }
-
-            .status-bar {
-                text-align: center;
-                margin-top: 20px;
-                font-size: 1.2rem;
-                min-height: 1.5em;
-            }
-
-            #overlay {
-                position: fixed;
-                top: 0; left: 0; width: 100%; height: 100%;
-                background: rgba(0,0,0,0.95);
-                display: none;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                z-index: 1001;
-                text-align: center;
-                padding: 20px;
-            }
-
-            #overlay.show {
-                display: flex;
-            }
-
-            #overlay h2 { font-size: 3rem; margin-bottom: 20px; }
-            #insult { font-size: 1.5rem; font-style: italic; color: #ff3366; margin-bottom: 30px; max-width: 600px; font-weight: bold; }
-
-            .win-glow {
-                animation: win-pulse 0.5s infinite alternate;
-                background: rgba(0, 255, 0, 0.2) !important;
-            }
-
-            @keyframes win-pulse {
-                from { transform: scale(1); filter: brightness(1); }
-                to { transform: scale(1.05); filter: brightness(1.3); }
-            }
-
-            .back-button {
-                position: absolute;
-                top: 20px;
-                right: 20px;
-                background: var(--neon-red);
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 5px;
-                cursor: pointer;
-                font-weight: bold;
-                z-index: 1005;
-            }
-
-            .back-button:hover {
-                background: #ff0080;
-            }
-
-            #game-interface {
-                display: none;
-                width: 100%;
-                max-width: 600px;
-                padding: 20px;
-            }
-
-            #game-interface.show {
-                display: block;
-            }
-
-            .chess-clocks {
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 30px;
-                gap: 20px;
-            }
-        </style>
-
-        <button class="back-button" onclick="goBackToMenu()">← العودة</button>
-        <div style="position: relative; width: 100%; max-width: 500px;">
-            <div style="text-align: center;">
-                <h1 style="color: var(--neon-blue); margin-bottom: 20px;">X-O ULTIMATE</h1>
-                <div class="menu-card">
-                    <div class="mode-selector">
-                        <label>اختر مستوى التحدي:</label>
-                        <select id="game-mode">
-                            <option value="3">عادي (3x3)</option>
-                            <option value="4">محترفين (4x4)</option>
-                            <option value="hacker">هاكرز (4x4 + مسح واختراق)</option>
-                        </select>
+            <!-- Game Interface -->
+            <div id="xo-game" class="game-interface">
+                <div class="clocks-row">
+                    <div id="clock-X" class="clock">
+                        <div class="player-label" style="color: var(--neon-blue);">🔵 لاعب X</div>
+                        <div id="time-X" class="time-display" style="color: var(--neon-blue);">00:00</div>
                     </div>
-                    <div class="time-selector">
-                        <label>وقت كل لاعب (بالدقائق):</label>
-                        <input type="number" id="time-input" value="1" min="0.5" step="0.5">
+                    <div id="clock-O" class="clock">
+                        <div class="player-label" style="color: var(--neon-red);">🔴 لاعب O</div>
+                        <div id="time-O" class="time-display" style="color: var(--neon-red);">00:00</div>
                     </div>
-                    <button class="xo-button" onclick="startXOGame()">ابدأ المعركة</button>
+                </div>
+
+                <div class="status-bar" id="status">جاهز للبدء</div>
+
+                <div class="board-container">
+                    <div id="board" class="board"></div>
+                </div>
+
+                <div class="game-buttons">
+                    <button class="play-btn reset-btn" onclick="resetXOGame()">🔄 إعادة اللعبة</button>
+                    <button class="play-btn xo-btn" onclick="backToMenu()">← عودة</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Game Interface -->
-    <div id="game-interface" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 12, 0.95); z-index: 1000; overflow-y: auto; padding: 20px;">
-        <button class="back-button" onclick="goBackToMenu()" style="position: fixed; top: 20px; right: 20px; z-index: 1005;">← العودة</button>
-        <div style="max-width: 600px; margin: 0 auto; padding-top: 60px;">
-            <div class="chess-clocks">
-                <div id="clock-X" class="clock">
-                    <div class="player-label blue-text">لاعب X (أزرق)</div>
-                    <div id="time-X" class="time-display blue-text">00:00</div>
-                </div>
-                <div id="clock-O" class="clock">
-                    <div class="player-label red-text">لاعب O (أحمر)</div>
-                    <div id="time-O" class="time-display red-text">00:00</div>
-                </div>
-            </div>
-
-            <div id="board" class="board"></div>
-            <div class="status-bar" id="status">دور اللاعب X</div>
-            <button class="xo-button" onclick="resetXOGame()" style="width:100%; margin-top:20px; font-size: 1rem; padding: 8px;">انسحاب وإعادة</button>
-        </div>
-    </div>
-
-    <!-- End Game Overlay -->
-    <div id="overlay">
+    <!-- ===== GAME OVERLAY (END GAME) ===== -->
+    <div id="game-overlay">
         <h2 id="winner-text">فاز X!</h2>
         <p id="insult"></p>
-        <button class="xo-button" onclick="goBackToMenu()" style="margin-top: 20px;">العودة للقائمة الرئيسية</button>
+        <button class="back-btn" onclick="backToMenu()">← العودة للقائمة</button>
     </div>
 
     <script>
-        // ===== X-O Game =====
+        // ===== X-O GAME LOGIC =====
         let board = [];
         let currentPlayer = 'X';
         let isGameActive = false;
-        let mode = '3';
+        let boardSize = 3;
         let timers = { X: 0, O: 0 };
-        let timerInterval;
+        let timerInterval = null;
 
         const timeoutInsults = [
             "انتهى الوقت يا بطيء.. اذهب للعب السلم والثعبان أفضل لك!",
@@ -638,51 +799,74 @@
             "أنت بطيء جداً، جدتي تلعب أسرع منك بمرتين!"
         ];
 
-        const proInsults = [
-            "واضح أن لفل المحترفين كبير جداً على حجم ذكائك!",
-            "لقد تم سحقك بـ 4 حركات متتالية.. اذهب وابكِ في الزاوية.",
-            "هل هذا كل ما لديك؟ خسارة مخزية ومستحقة.",
-            "نصيحة: امسح اللعبة وعد لطور الأطفال (3x3)."
-        ];
+        const winInsults = {
+            3: [
+                "فوز عادي جداً.. جرب لفل المحترفين لو كنت تملك الجرأة.",
+                "حتى الأطفال يفوزون بهذا المستوى بسهولة!"
+            ],
+            4: [
+                "نعم، هذا أفضل... لكن المحترفون يفعلون أفضل من هذا.",
+                "لا بأس، لكن لا تفكر أنك احترافي حتى الآن."
+            ],
+            5: [
+                "الآن بدأت تلعب حقاً! لكن هناك من هم أفضل.",
+                "ممتاز! لكن المستويات الأعلى تنتظرك."
+            ],
+            6: [
+                "وااو! أنت جيد فعلاً!",
+                "مثير للإعجاب! استمر في التقدم."
+            ],
+            7: [
+                "استثنائي! لا أعتقد أن الكثيرين يصلون لهنا.",
+                "أنت بالفعل نينجا الشطرنج!"
+            ],
+            8: [
+                "مستحيل تقريباً! أنت إله الألعاب!",
+                "لا كلمات... أنت أسطورة حقيقية!"
+            ]
+        };
 
-        const hackerInsults = [
-            "تم اختراق نظامك بنجاح! لقد تم مسح حجر كبريائك!",
-            "حتى مع ميزة المسح خسرت؟ أنت عار على مجتمع الهاكرز والبرمجة.",
-            "لقد تم تعديل ملفات عقلك وحذفها.. فوز ساحق ومهين للأذكياء فقط!",
-            "Error 404: كرامتك غير موجودة بعد هذه الخسارة المهينة."
-        ];
+        function showXOGame() {
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('xo-screen').classList.add('show');
+        }
 
-        function goBackToMenu() {
-            document.getElementById('setup-screen').style.display = 'none';
-            document.getElementById('game-interface').style.display = 'none';
-            document.getElementById('overlay').classList.remove('show');
+        function backToMenu() {
+            document.getElementById('xo-screen').classList.remove('show');
+            document.getElementById('game-overlay').classList.remove('show');
+            document.getElementById('xo-setup').style.display = 'block';
+            document.getElementById('xo-game').classList.remove('show');
+            document.getElementById('main-menu').style.display = 'flex';
             isGameActive = false;
             if (timerInterval) clearInterval(timerInterval);
         }
 
         function startXOGame() {
-            mode = document.getElementById('game-mode').value;
+            boardSize = parseInt(document.getElementById('board-size').value);
             const minutes = parseFloat(document.getElementById('time-input').value);
             timers.X = minutes * 60;
             timers.O = minutes * 60;
 
-            document.getElementById('setup-screen').style.display = 'none';
-            document.getElementById('game-interface').style.display = 'block';
+            document.getElementById('xo-setup').style.display = 'none';
+            document.getElementById('xo-game').classList.add('show');
 
             initBoard();
             updateTimerDisplay();
             isGameActive = true;
+            currentPlayer = 'X';
+            document.getElementById('status').textContent = `🎮 دور اللاعب X`;
+            document.getElementById('clock-X').classList.add('active-blue');
+            document.getElementById('clock-O').classList.remove('active-red');
             startTimer();
         }
 
         function initBoard() {
             const boardElement = document.getElementById('board');
-            const size = (mode === '3') ? 3 : 4;
-            boardElement.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+            boardElement.style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;
             boardElement.innerHTML = '';
-            board = Array(size * size).fill('');
+            board = Array(boardSize * boardSize).fill('');
 
-            for (let i = 0; i < size * size; i++) {
+            for (let i = 0; i < boardSize * boardSize; i++) {
                 const cell = document.createElement('div');
                 cell.classList.add('cell');
                 cell.dataset.index = i;
@@ -692,37 +876,17 @@
         }
 
         function handleCellClick(index) {
-            if (!isGameActive) return;
-
-            const cells = document.querySelectorAll('.cell');
-            const targetPlayer = board[index];
-            const isBoardFull = board.every(cell => cell !== '');
-
-            if (mode === 'hacker' && isBoardFull) {
-                if (targetPlayer !== '' && targetPlayer !== currentPlayer) {
-                    board[index] = currentPlayer;
-                    cells[index].textContent = currentPlayer;
-                    cells[index].className = `cell ${currentPlayer.toLowerCase()}`;
-                    
-                    if (checkWin()) {
-                        endXOGame(false);
-                    } else {
-                        switchPlayer();
-                    }
-                }
-                return; 
-            }
-
-            if (board[index] !== '') return;
+            if (!isGameActive || board[index] !== '') return;
 
             board[index] = currentPlayer;
+            const cells = document.querySelectorAll('.cell');
             cells[index].textContent = currentPlayer;
             cells[index].classList.add(currentPlayer.toLowerCase());
 
             if (checkWin()) {
-                endXOGame(false);
-            } else if (board.every(cell => cell !== '') && mode !== 'hacker') {
-                endXOGame(true);
+                endGame(false);
+            } else if (board.every(cell => cell !== '')) {
+                endGame(true);
             } else {
                 switchPlayer();
             }
@@ -730,13 +894,14 @@
 
         function switchPlayer() {
             currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-            document.getElementById('status').textContent = `دور اللاعب ${currentPlayer}`;
-            document.getElementById('clock-X').classList.toggle('active-blue', currentPlayer === 'X');
-            document.getElementById('clock-O').classList.toggle('active-red', currentPlayer === 'O');
+            const player = currentPlayer;
+            document.getElementById('status').textContent = `🎮 دور اللاعب ${player}`;
+            document.getElementById('clock-X').classList.toggle('active-blue', player === 'X');
+            document.getElementById('clock-O').classList.toggle('active-red', player === 'O');
         }
 
         function startTimer() {
-            document.getElementById('clock-X').classList.add('active-blue');
+            if (timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(() => {
                 timers[currentPlayer]--;
                 updateTimerDisplay();
@@ -755,7 +920,7 @@
                 const display = document.getElementById(`time-${p}`);
                 display.textContent = `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
                 
-                if (timers[p] <= 10) {
+                if (timers[p] <= 10 && timers[p] > 0) {
                     display.classList.add('warning');
                 } else {
                     display.classList.remove('warning');
@@ -766,18 +931,15 @@
         function timeoutLoss() {
             isGameActive = false;
             const loser = currentPlayer;
-            
             document.getElementById('winner-text').textContent = `خسارة مخزية بالوقت لـ ${loser}!`;
             document.getElementById('winner-text').style.color = 'var(--neon-red)';
             document.getElementById('insult').textContent = timeoutInsults[Math.floor(Math.random() * timeoutInsults.length)];
-            document.getElementById('overlay').classList.add('show');
+            document.getElementById('game-overlay').classList.add('show');
         }
 
         function checkWin() {
-            const size = (mode === '3') ? 3 : 4;
-            const winConditions = getWinConditions(size);
-            
-            return winConditions.some(condition => {
+            const conditions = getWinConditions();
+            return conditions.some(condition => {
                 if (condition.every(index => board[index] === currentPlayer)) {
                     highlightWinningCells(condition);
                     return true;
@@ -786,22 +948,25 @@
             });
         }
 
-        function getWinConditions(size) {
+        function getWinConditions() {
             const conditions = [];
-            for (let i = 0; i < size; i++) {
+            // Rows
+            for (let i = 0; i < boardSize; i++) {
                 const row = [];
-                for (let j = 0; j < size; j++) row.push(i * size + j);
+                for (let j = 0; j < boardSize; j++) row.push(i * boardSize + j);
                 conditions.push(row);
             }
-            for (let i = 0; i < size; i++) {
+            // Columns
+            for (let i = 0; i < boardSize; i++) {
                 const col = [];
-                for (let j = 0; j < size; j++) col.push(j * size + i);
+                for (let j = 0; j < boardSize; j++) col.push(j * boardSize + i);
                 conditions.push(col);
             }
+            // Diagonals
             const diag1 = [], diag2 = [];
-            for (let i = 0; i < size; i++) {
-                diag1.push(i * size + i);
-                diag2.push(i * size + (size - 1 - i));
+            for (let i = 0; i < boardSize; i++) {
+                diag1.push(i * boardSize + i);
+                diag2.push(i * boardSize + (boardSize - 1 - i));
             }
             conditions.push(diag1, diag2);
             return conditions;
@@ -812,10 +977,10 @@
             indices.forEach(i => cells[i].classList.add('win-glow'));
         }
 
-        function endXOGame(draw) {
+        function endGame(draw) {
             isGameActive = false;
-            clearInterval(timerInterval);
-            const overlay = document.getElementById('overlay');
+            if (timerInterval) clearInterval(timerInterval);
+            const overlay = document.getElementById('game-overlay');
             const winText = document.getElementById('winner-text');
             const insult = document.getElementById('insult');
 
@@ -824,45 +989,29 @@
                 insult.textContent = "لا يوجد فائز هنا، مجرد مضيعة أخرى للوقت البشري.";
                 winText.style.color = '#aaa';
             } else {
-                winText.textContent = `سحقاً لكم.. الفوز للاعب ${currentPlayer}!`;
+                winText.textContent = `🎉 الفوز للاعب ${currentPlayer}! 🎉`;
                 winText.style.color = currentPlayer === 'X' ? 'var(--neon-blue)' : 'var(--neon-red)';
                 
-                if (mode === '3') {
-                    insult.textContent = "فوز عادي جداً.. جرب لفل المحترفين لو كنت تملك الجرأة.";
-                } else if (mode === '4') {
-                    insult.textContent = proInsults[Math.floor(Math.random() * proInsults.length)];
-                } else if (mode === 'hacker') {
-                    insult.textContent = hackerInsults[Math.floor(Math.random() * hackerInsults.length)];
-                }
+                const insults = winInsults[boardSize] || winInsults[3];
+                insult.textContent = insults[Math.floor(Math.random() * insults.length)];
             }
             overlay.classList.add('show');
         }
 
         function resetXOGame() {
-            goBackToMenu();
+            backToMenu();
         }
 
-        // Page load animation
-        window.addEventListener('load', () => {
-            const cards = document.querySelectorAll('.game-card');
-            cards.forEach((card, index) => {
-                setTimeout(() => {
-                    card.style.animation = 'slideIn 0.5s ease forwards';
-                }, index * 100);
-            });
-        });
-
+        // Warning animation
         const style = document.createElement('style');
         style.innerHTML = `
-            @keyframes slideIn {
-                from {
-                    opacity: 0;
-                    transform: translateY(30px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
+            @keyframes warningBlink {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.3; }
+            }
+            .warning {
+                animation: warningBlink 0.5s infinite !important;
+                color: #ff0000 !important;
             }
         `;
         document.head.appendChild(style);
