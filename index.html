@@ -69,7 +69,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 30px;
-            max-width: 1000px;
+            max-width: 1200px;
             width: 100%;
         }
 
@@ -206,16 +206,6 @@
             transform: scale(0.98);
         }
 
-        .chess-btn {
-            background: linear-gradient(45deg, var(--neon-green), #00ff33);
-            box-shadow: 0 5px 20px rgba(0, 255, 0, 0.3);
-        }
-
-        .chess-btn:hover {
-            box-shadow: 0 8px 30px rgba(0, 255, 0, 0.5);
-            background: linear-gradient(45deg, #00ff33, var(--neon-green));
-        }
-
         .xo-btn {
             background: linear-gradient(45deg, var(--neon-red), #ff0080);
             box-shadow: 0 5px 20px rgba(255, 0, 85, 0.3);
@@ -224,6 +214,16 @@
         .xo-btn:hover {
             box-shadow: 0 8px 30px rgba(255, 0, 85, 0.5);
             background: linear-gradient(45deg, #ff0080, var(--neon-red));
+        }
+
+        .racing-btn {
+            background: linear-gradient(45deg, #ff6400, #ff8800);
+            box-shadow: 0 5px 20px rgba(255, 100, 0, 0.3);
+        }
+
+        .racing-btn:hover {
+            box-shadow: 0 8px 30px rgba(255, 100, 0, 0.5);
+            background: linear-gradient(45deg, #ff8800, #ff6400);
         }
 
         .footer {
@@ -244,6 +244,28 @@
             font-weight: bold;
             color: var(--neon-blue);
             text-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--neon-green);
+            color: black;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-top: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .new-badge {
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
         }
 
         @media (max-width: 768px) {
@@ -272,32 +294,9 @@
                 gap: 20px;
             }
         }
-
-        .badge {
-            display: inline-block;
-            background: var(--neon-green);
-            color: black;
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: bold;
-            margin-top: 10px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .new-badge {
-            animation: pulse 1s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
     </style>
 </head>
 <body>
-
     <div class="main-container">
         <div class="header">
             <h1>🎮 Abdullah Games 🎮</h1>
@@ -326,7 +325,7 @@
                         <span class="stat-label">لاعب</span>
                     </div>
                 </div>
-                <button class="play-btn xo-btn" onclick="startGame()">ابدأ اللعبة</button>
+                <button class="play-btn xo-btn" onclick="startXOGame()">ابد�� اللعبة</button>
                 <span class="badge">الكلاسيكية</span>
             </div>
 
@@ -335,7 +334,7 @@
                 <span class="game-icon">♟️</span>
                 <h2 class="game-title">Chess Master</h2>
                 <p class="game-description">
-                    لعبة الشطرنج الكاملة مع قواعد احترافية وكشف الشيك والكش ملك
+                    لعبة الشطرنج الكاملة مع قواعس احترافية وكشف الشيك والكش ملك
                 </p>
                 <div class="game-stats">
                     <div class="stat">
@@ -351,8 +350,33 @@
                         <span class="stat-label">لاعب</span>
                     </div>
                 </div>
-                <a href="chess-game.html" class="play-btn chess-btn">ابدأ الشطرنج</a>
+                <a href="chess-game.html" class="play-btn" style="background: linear-gradient(45deg, var(--neon-green), #00ff33); box-shadow: 0 5px 20px rgba(0, 255, 0, 0.3);">ابدأ الشطرنج</a>
                 <span class="badge new-badge">🆕 جديد</span>
+            </div>
+
+            <!-- Racing Game Card -->
+            <div class="game-card">
+                <span class="game-icon">🏎️</span>
+                <h2 class="game-title">Racing 3D</h2>
+                <p class="game-description">
+                    لعبة سباق سيارات ثلاثية الأبعاد خفيفة على المتصفح مع محرك واقعي
+                </p>
+                <div class="game-stats">
+                    <div class="stat">
+                        <span class="stat-value">2000</span>
+                        <span class="stat-label">مربع</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">🏁</span>
+                        <span class="stat-label">حلبة</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">1</span>
+                        <span class="stat-label">لاعب</span>
+                    </div>
+                </div>
+                <a href="racing-3d.html" class="play-btn racing-btn">ابدأ السباق</a>
+                <span class="badge new-badge">🏆 جديد</span>
             </div>
         </div>
 
@@ -363,46 +387,12 @@
         </div>
     </div>
 
-    <script>
-        function startGame() {
-            // يتم التعامل مع لعبة X-O من خلال HTML مباشرة
-            document.getElementById('setup-screen').style.display = 'block';
-            document.getElementById('game-interface').style.display = 'none';
-        }
-
-        // إضافة تأثير عند تحميل الصفحة
-        window.addEventListener('load', () => {
-            const cards = document.querySelectorAll('.game-card');
-            cards.forEach((card, index) => {
-                setTimeout(() => {
-                    card.style.animation = 'slideIn 0.5s ease forwards';
-                }, index * 100);
-            });
-        });
-
-        // إضافة CSS للحركة
-        const style = document.createElement('style');
-        style.innerHTML = `
-            @keyframes slideIn {
-                from {
-                    opacity: 0;
-                    transform: translateY(30px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    </script>
-
     <!-- X-O Game Interface (Hidden initially) -->
-    <div id="setup-screen" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+    <div id="setup-screen" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 12, 0.95); z-index: 1000; align-items: center; justify-content: center;">
         <style>
             #setup-screen {
                 text-align: center;
-                z-index: 10;
+                display: flex !important;
             }
 
             .menu-card {
@@ -450,19 +440,32 @@
                 box-shadow: 0 0 20px var(--neon-blue);
             }
 
-            #game-interface {
-                display: none;
-                width: 100%;
-                max-width: 600px;
-                padding: 20px;
+            .board {
+                display: grid;
+                gap: 10px;
+                margin: 0 auto;
+                perspective: 1000px;
             }
 
-            .chess-clocks {
+            .cell {
+                background: rgba(255, 255, 255, 0.05);
+                aspect-ratio: 1/1;
+                border-radius: 8px;
                 display: flex;
-                justify-content: space-between;
-                margin-bottom: 30px;
-                gap: 20px;
+                align-items: center;
+                justify-content: center;
+                font-size: 3rem;
+                font-weight: bold;
+                cursor: pointer;
+                transition: 0.2s;
+                border: 1px solid #222;
+                position: relative;
+                user-select: none;
             }
+
+            .cell:hover { background: rgba(255, 255, 255, 0.1); }
+            .cell.x { color: var(--neon-blue); text-shadow: 0 0 15px var(--neon-blue); }
+            .cell.o { color: var(--neon-red); text-shadow: 0 0 15px var(--neon-red); }
 
             .clock {
                 flex: 1;
@@ -494,33 +497,6 @@
                 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; }
             }
 
-            .board {
-                display: grid;
-                gap: 10px;
-                margin: 0 auto;
-                perspective: 1000px;
-            }
-
-            .cell {
-                background: rgba(255, 255, 255, 0.05);
-                aspect-ratio: 1/1;
-                border-radius: 8px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 3rem;
-                font-weight: bold;
-                cursor: pointer;
-                transition: 0.2s;
-                border: 1px solid #222;
-                position: relative;
-                user-select: none;
-            }
-
-            .cell:hover { background: rgba(255, 255, 255, 0.1); }
-            .cell.x { color: var(--neon-blue); text-shadow: 0 0 15px var(--neon-blue); }
-            .cell.o { color: var(--neon-red); text-shadow: 0 0 15px var(--neon-red); }
-
             .status-bar {
                 text-align: center;
                 margin-top: 20px;
@@ -532,14 +508,17 @@
                 position: fixed;
                 top: 0; left: 0; width: 100%; height: 100%;
                 background: rgba(0,0,0,0.95);
-                display: flex;
+                display: none;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                z-index: 100;
-                display: none;
+                z-index: 1001;
                 text-align: center;
                 padding: 20px;
+            }
+
+            #overlay.show {
+                display: flex;
             }
 
             #overlay h2 { font-size: 3rem; margin-bottom: 20px; }
@@ -566,15 +545,34 @@
                 border-radius: 5px;
                 cursor: pointer;
                 font-weight: bold;
+                z-index: 1005;
             }
 
             .back-button:hover {
                 background: #ff0080;
             }
+
+            #game-interface {
+                display: none;
+                width: 100%;
+                max-width: 600px;
+                padding: 20px;
+            }
+
+            #game-interface.show {
+                display: block;
+            }
+
+            .chess-clocks {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 30px;
+                gap: 20px;
+            }
         </style>
 
+        <button class="back-button" onclick="goBackToMenu()">← العودة</button>
         <div style="position: relative; width: 100%; max-width: 500px;">
-            <button class="back-button" onclick="goBackToMenu()">← العودة</button>
             <div style="text-align: center;">
                 <h1 style="color: var(--neon-blue); margin-bottom: 20px;">X-O ULTIMATE</h1>
                 <div class="menu-card">
@@ -597,8 +595,8 @@
     </div>
 
     <!-- Game Interface -->
-    <div id="game-interface" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 1000; overflow-y: auto; padding: 20px;">
-        <button class="back-button" onclick="goBackToMenu()" style="position: fixed; top: 20px; right: 20px; z-index: 1001;">← العودة</button>
+    <div id="game-interface" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 12, 0.95); z-index: 1000; overflow-y: auto; padding: 20px;">
+        <button class="back-button" onclick="goBackToMenu()" style="position: fixed; top: 20px; right: 20px; z-index: 1005;">← العودة</button>
         <div style="max-width: 600px; margin: 0 auto; padding-top: 60px;">
             <div class="chess-clocks">
                 <div id="clock-X" class="clock">
@@ -625,6 +623,7 @@
     </div>
 
     <script>
+        // ===== X-O Game =====
         let board = [];
         let currentPlayer = 'X';
         let isGameActive = false;
@@ -656,7 +655,7 @@
         function goBackToMenu() {
             document.getElementById('setup-screen').style.display = 'none';
             document.getElementById('game-interface').style.display = 'none';
-            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('overlay').classList.remove('show');
             isGameActive = false;
             if (timerInterval) clearInterval(timerInterval);
         }
@@ -771,7 +770,7 @@
             document.getElementById('winner-text').textContent = `خسارة مخزية بالوقت لـ ${loser}!`;
             document.getElementById('winner-text').style.color = 'var(--neon-red)';
             document.getElementById('insult').textContent = timeoutInsults[Math.floor(Math.random() * timeoutInsults.length)];
-            document.getElementById('overlay').style.display = 'flex';
+            document.getElementById('overlay').classList.add('show');
         }
 
         function checkWin() {
@@ -836,13 +835,37 @@
                     insult.textContent = hackerInsults[Math.floor(Math.random() * hackerInsults.length)];
                 }
             }
-            overlay.style.display = 'flex';
+            overlay.classList.add('show');
         }
 
         function resetXOGame() {
             goBackToMenu();
         }
-    </script>
 
+        // Page load animation
+        window.addEventListener('load', () => {
+            const cards = document.querySelectorAll('.game-card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.animation = 'slideIn 0.5s ease forwards';
+                }, index * 100);
+            });
+        });
+
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes slideIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
 </body>
 </html>
