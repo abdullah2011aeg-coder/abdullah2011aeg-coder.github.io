@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Racing 3D - لعبة سيارات ثلاثية الأبعاد</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #000;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        #gameContainer {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background: linear-gradient(180deg, #87CEEB 0%, #E0F6FF 100%);
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 0 10px #00ff00;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border: 2px solid #00ff00;
+            border-radius: 5px;
+        }
+
+        .hud-item {
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .hud-label {
+            color: #0f0;
+            font-weight: bold;
+        }
+
+        .speed-bar {
+            width: 150px;
+            height: 8px;
+            background: rgba(0, 100, 0, 0.5);
+            border: 1px solid #0f0;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .speed-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0f0, #ff6400);
+            width: 0%;
+            transition: width 0.1s;
+        }
+
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border: 2px solid #00ff00;
+            border-radius: 5px;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            z-index: 100;
+            line-height: 1.6;
+        }
+
+        .control-key {
+            color: #ff6400;
+            font-weight: bold;
+        }
+
+        #minimap {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 150px;
+            height: 150px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ff00;
+            border-radius: 5px;
+            z-index: 100;
+        }
+
+        #minimapCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        #gameOverScreen {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .game-over-content {
+            background: rgba(10, 10, 10, 0.95);
+            padding: 40px;
+            border: 3px solid #00ff00;
+            border-radius: 10px;
+            max-width: 500px;
+        }
+
+        .game-over-content h1 {
+            font-size: 3em;
+            color: #ff6400;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px #ff6400;
+        }
+
+        .game-over-content p {
+            font-size: 1.2em;
+            color: #00ff00;
+            margin: 15px 0;
+        }
+
+        .game-over-buttons {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 1em;
+            background: rgba(0, 255, 0, 0.2);
+            border: 2px solid #00ff00;
+            color: #00ff00;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .btn:hover {
+            background: rgba(0, 255, 0, 0.4);
+            box-shadow: 0 0 20px #00ff00;
+        }
+
+        @media (max-width: 768px) {
+            #hud, #controls {
+                font-size: 12px;
+                padding: 10px;
+            }
+
+            #minimap {
+                width: 100px;
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- HUD -->
+        <div id="hud">
+            <div class="hud-item">
+                <span class="hud-label">السرعة:</span>
+                <span id="speedValue">0</span> كم/س
+                <div class="speed-bar">
+                    <div class="speed-fill" id="speedFill"></div>
+                </div>
+            </div>
+            <div class="hud-item">
+                <span class="hud-label">الموقع:</span>
+                <span id="posValue">0, 0</span>
+            </div>
+            <div class="hud-item">
+                <span class="hud-label">زاوية الرؤية:</span>
+                <span id="angleValue">0°</span>
+            </div>
+            <div class="hud-item">
+                <span class="hud-label">المحرك:</span>
+                <span id="engineValue" style="color: #0f0;">✓ يعمل</span>
+            </div>
+        </div>
+
+        <!-- Minimap -->
+        <div id="minimap">
+            <canvas id="minimapCanvas" width="150" height="150"></canvas>
+        </div>
+
+        <!-- Controls Info -->
+        <div id="controls">
+            <div><span class="control-key">W</span> - للأمام</div>
+            <div><span class="control-key">S</span> - للخلف</div>
+            <div><span class="control-key">A/D</span> - التوجيه</div>
+            <div><span class="control-key">Space</span> - كبح</div>
+            <div><span class="control-key">Shift</span> - سرعة فائقة</div>
+            <div><span class="control-key">P</span> - إيقاف مؤقت</div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="gameOverScreen">
+            <div class="game-over-content">
+                <h1>🏁 انتهت اللعبة!</h1>
+                <p id="gameOverMessage">لقد وصلت إلى خط النهاية!</p>
+                <div class="game-over-buttons">
+                    <button class="btn" onclick="resetGame()">لعبة جديدة</button>
+                    <button class="btn" onclick="goHome()">الرئيسية</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const minimapCanvas = document.getElementById('minimapCanvas');
+        const minimapCtx = minimapCanvas.getContext('2d');
+
+        // Set canvas size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // ===== Game Objects =====
+        class Car {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.vx = 0;
+                this.vy = 0;
+                this.angle = 0;
+                this.speed = 0;
+                this.maxSpeed = 12;
+                this.acceleration = 0.3;
+                this.friction = 0.92;
+                this.turnSpeed = 0.08;
+                this.width = 30;
+                this.height = 50;
+            }
+
+            update(keys) {
+                // Acceleration
+                if (keys['w'] || keys['W']) {
+                    this.vx += Math.cos(this.angle) * this.acceleration;
+                    this.vy += Math.sin(this.angle) * this.acceleration;
+                }
+
+                // Reverse
+                if (keys['s'] || keys['S']) {
+                    this.vx -= Math.cos(this.angle) * this.acceleration * 0.7;
+                    this.vy -= Math.sin(this.angle) * this.acceleration * 0.7;
+                }
+
+                // Steering
+                if (keys['a'] || keys['A']) {
+                    this.angle -= this.turnSpeed;
+                }
+                if (keys['d'] || keys['D']) {
+                    this.angle += this.turnSpeed;
+                }
+
+                // Brakes
+                if (keys[' ']) {
+                    this.vx *= 0.85;
+                    this.vy *= 0.85;
+                }
+
+                // Turbo
+                if (keys['Shift']) {
+                    this.vx *= 1.05;
+                    this.vy *= 1.05;
+                }
+
+                // Friction
+                this.vx *= this.friction;
+                this.vy *= this.friction;
+
+                // Speed limit
+                this.speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+                if (this.speed > this.maxSpeed) {
+                    const scale = this.maxSpeed / this.speed;
+                    this.vx *= scale;
+                    this.vy *= scale;
+                }
+
+                // Update position
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Boundaries
+                if (this.x < 0) this.x = 0;
+                if (this.x > 2000) this.x = 2000;
+                if (this.y < 0) this.y = 0;
+                if (this.y > 2000) this.y = 2000;
+            }
+
+            draw(ctx, cameraX, cameraY) {
+                const screenX = this.x - cameraX;
+                const screenY = this.y - cameraY;
+
+                ctx.save();
+                ctx.translate(screenX, screenY);
+                ctx.rotate(this.angle);
+
+                // Car body
+                ctx.fillStyle = '#ff0000';
+                ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+
+                // Windows
+                ctx.fillStyle = '#87CEEB';
+                ctx.fillRect(-this.width / 2 + 3, -this.height / 2 + 5, this.width - 6, 8);
+
+                // Headlights
+                ctx.fillStyle = '#ffff00';
+                ctx.beginPath();
+                ctx.arc(-this.width / 2 + 5, -this.height / 2 + 2, 3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(this.width / 2 - 5, -this.height / 2 + 2, 3, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        class Track {
+            constructor() {
+                this.width = 2000;
+                this.height = 2000;
+                this.roadWidth = 150;
+                this.checkpoints = [
+                    { x: 200, y: 200 },
+                    { x: 1800, y: 200 },
+                    { x: 1800, y: 1800 },
+                    { x: 200, y: 1800 },
+                    { x: 200, y: 200 }
+                ];
+            }
+
+            draw(ctx, cameraX, cameraY) {
+                // Background
+                ctx.fillStyle = '#228B22';
+                ctx.fillRect(-cameraX, -cameraY, this.width, this.height);
+
+                // Draw road
+                ctx.strokeStyle = '#666666';
+                ctx.lineWidth = this.roadWidth;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.beginPath();
+                ctx.moveTo(this.checkpoints[0].x - cameraX, this.checkpoints[0].y - cameraY);
+                for (let i = 1; i < this.checkpoints.length; i++) {
+                    ctx.lineTo(this.checkpoints[i].x - cameraX, this.checkpoints[i].y - cameraY);
+                }
+                ctx.stroke();
+
+                // Draw road markings
+                ctx.strokeStyle = '#ffff00';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([20, 20]);
+                ctx.beginPath();
+                ctx.moveTo(this.checkpoints[0].x - cameraX, this.checkpoints[0].y - cameraY);
+                for (let i = 1; i < this.checkpoints.length; i++) {
+                    ctx.lineTo(this.checkpoints[i].x - cameraX, this.checkpoints[i].y - cameraY);
+                }
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Draw start/finish line
+                ctx.fillStyle = '#ffffff';
+                for (let i = 0; i < 10; i++) {
+                    if (i % 2 === 0) ctx.fillStyle = '#ffffff';
+                    else ctx.fillStyle = '#000000';
+                    ctx.fillRect(
+                        this.checkpoints[0].x - cameraX - 75 + i * 15,
+                        this.checkpoints[0].y - cameraY - this.roadWidth / 2,
+                        15,
+                        this.roadWidth
+                    );
+                }
+
+                // Draw checkpoints
+                for (let i = 0; i < this.checkpoints.length - 1; i++) {
+                    const cp = this.checkpoints[i];
+                    ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
+                    ctx.beginPath();
+                    ctx.arc(cp.x - cameraX, cp.y - cameraY, 80, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#00ff00';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // ===== Game State =====
+        const car = new Car(200, 200);
+        const track = new Track();
+        let keys = {};
+        let gameRunning = true;
+        let currentCheckpoint = 0;
+        let lapTime = 0;
+        let bestTime = Infinity;
+
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if (e.key === 'p' || e.key === 'P') {
+                gameRunning = !gameRunning;
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        // ===== Game Loop =====
+        function gameLoop() {
+            if (!gameRunning) {
+                requestAnimationFrame(gameLoop);
+                return;
+            }
+
+            // Update
+            car.update(keys);
+
+            // Check checkpoint
+            const dx = car.x - track.checkpoints[currentCheckpoint].x;
+            const dy = car.y - track.checkpoints[currentCheckpoint].y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < 100) {
+                currentCheckpoint++;
+                if (currentCheckpoint >= track.checkpoints.length) {
+                    currentCheckpoint = 0;
+                    lapTime = 0;
+                    showGameOver();
+                }
+            }
+
+            lapTime++;
+
+            // Camera
+            const cameraX = car.x - canvas.width / 2;
+            const cameraY = car.y - canvas.height / 2;
+
+            // Clear canvas
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw
+            track.draw(ctx, cameraX, cameraY);
+            car.draw(ctx, cameraX, cameraY);
+
+            // Update HUD
+            document.getElementById('speedValue').textContent = Math.round(car.speed * 10);
+            document.getElementById('speedFill').style.width = (car.speed / car.maxSpeed * 100) + '%';
+            document.getElementById('posValue').textContent = Math.round(car.x) + ', ' + Math.round(car.y);
+            document.getElementById('angleValue').textContent = Math.round(car.angle * 180 / Math.PI);
+
+            // Draw minimap
+            drawMinimap(cameraX, cameraY);
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function drawMinimap(cameraX, cameraY) {
+            const scale = 150 / 2000;
+            minimapCtx.fillStyle = '#228B22';
+            minimapCtx.fillRect(0, 0, minimapCanvas.width, minimapCanvas.height);
+
+            // Draw track
+            minimapCtx.strokeStyle = '#666666';
+            minimapCtx.lineWidth = 3;
+            minimapCtx.beginPath();
+            minimapCtx.moveTo(track.checkpoints[0].x * scale, track.checkpoints[0].y * scale);
+            for (let i = 1; i < track.checkpoints.length; i++) {
+                minimapCtx.lineTo(track.checkpoints[i].x * scale, track.checkpoints[i].y * scale);
+            }
+            minimapCtx.stroke();
+
+            // Draw car
+            minimapCtx.fillStyle = '#ff0000';
+            minimapCtx.beginPath();
+            minimapCtx.arc(car.x * scale, car.y * scale, 5, 0, Math.PI * 2);
+            minimapCtx.fill();
+        }
+
+        function showGameOver() {
+            const screen = document.getElementById('gameOverScreen');
+            const message = document.getElementById('gameOverMessage');
+            message.textContent = `🏁 تهانينا! أكملت اللفة في ${Math.round(lapTime / 60)} ثانية!`;
+            screen.style.display = 'flex';
+        }
+
+        function resetGame() {
+            car.x = 200;
+            car.y = 200;
+            car.vx = 0;
+            car.vy = 0;
+            car.angle = 0;
+            currentCheckpoint = 0;
+            lapTime = 0;
+            document.getElementById('gameOverScreen').style.display = 'none';
+        }
+
+        function goHome() {
+            window.location.href = 'index.html';
+        }
+
+        // Start game
+        gameLoop();
+    </script>
+</body>
+</html>
