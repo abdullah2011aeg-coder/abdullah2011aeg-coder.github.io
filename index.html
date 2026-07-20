@@ -35,7 +35,6 @@
             flex-direction: column;
         }
 
-        /* ===== MAIN MENU ===== */
         #main-menu {
             width: 100%;
             height: 100vh;
@@ -159,35 +158,6 @@
             z-index: 1;
         }
 
-        .game-stats {
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 20px;
-            padding: 15px;
-            background: rgba(0, 242, 255, 0.05);
-            border-radius: 8px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .stat {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .stat-value {
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: var(--neon-green);
-        }
-
-        .stat-label {
-            font-size: 0.8rem;
-            color: #888;
-            margin-top: 5px;
-        }
-
         .play-btn {
             background: linear-gradient(45deg, var(--neon-blue), #00d4ff);
             color: black;
@@ -213,10 +183,6 @@
             box-shadow: 0 8px 30px rgba(0, 242, 255, 0.5);
         }
 
-        .play-btn:active {
-            transform: scale(0.98);
-        }
-
         .xo-btn {
             background: linear-gradient(45deg, var(--neon-red), #ff0080);
             box-shadow: 0 5px 20px rgba(255, 0, 85, 0.3);
@@ -224,7 +190,26 @@
 
         .xo-btn:hover {
             box-shadow: 0 8px 30px rgba(255, 0, 85, 0.5);
-            background: linear-gradient(45deg, #ff0080, var(--neon-red));
+        }
+
+        .chess1-btn {
+            background: linear-gradient(45deg, var(--neon-green), #00ff33);
+            color: #000;
+            box-shadow: 0 5px 20px rgba(0, 255, 0, 0.3);
+        }
+
+        .chess1-btn:hover {
+            box-shadow: 0 8px 30px rgba(0, 255, 0, 0.5);
+        }
+
+        .chess2-btn {
+            background: linear-gradient(45deg, #00ccff, #0099ff);
+            color: #000;
+            box-shadow: 0 5px 20px rgba(0, 204, 255, 0.3);
+        }
+
+        .chess2-btn:hover {
+            box-shadow: 0 8px 30px rgba(0, 204, 255, 0.5);
         }
 
         .racing-btn {
@@ -234,18 +219,6 @@
 
         .racing-btn:hover {
             box-shadow: 0 8px 30px rgba(255, 100, 0, 0.5);
-            background: linear-gradient(45deg, #ff8800, #ff6400);
-        }
-
-        .chess-btn {
-            background: linear-gradient(45deg, var(--neon-green), #00ff33);
-            box-shadow: 0 5px 20px rgba(0, 255, 0, 0.3);
-            color: #000;
-        }
-
-        .chess-btn:hover {
-            box-shadow: 0 8px 30px rgba(0, 255, 0, 0.5);
-            background: linear-gradient(45deg, #00ff33, var(--neon-green));
         }
 
         .badge {
@@ -263,11 +236,6 @@
             background: var(--neon-green);
             color: black;
             animation: pulse 1s ease-in-out infinite;
-        }
-
-        .badge-old {
-            background: #ff6b6b;
-            color: white;
         }
 
         @keyframes pulse {
@@ -290,342 +258,19 @@
             text-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
         }
 
-        /* ===== X-O GAME SCREEN ===== */
-        #xo-screen {
-            display: none;
-            width: 100%;
-            height: 100vh;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            overflow-y: auto;
-        }
-
-        #xo-screen.show {
-            display: flex;
-        }
-
-        .xo-container {
-            width: 100vw;
-            max-width: 700px;
-            padding: 20px;
-        }
-
-        .back-btn-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1005;
-        }
-
-        .back-btn {
-            background: var(--neon-red);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(255, 0, 85, 0.3);
-        }
-
-        .back-btn:hover {
-            background: #ff0080;
-            box-shadow: 0 8px 20px rgba(255, 0, 85, 0.5);
-            transform: scale(1.05);
-        }
-
-        .setup-menu {
-            background: var(--card-bg);
-            padding: 40px;
-            border-radius: 15px;
-            border: 2px solid var(--neon-blue);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
-            text-align: center;
-            width: 100%;
-        }
-
-        .setup-menu h2 {
-            color: var(--neon-blue);
-            font-size: 2.5rem;
-            margin-bottom: 30px;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-        }
-
-        .form-group {
-            margin-bottom: 25px;
-            text-align: right;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: bold;
-            color: var(--text-color);
-            font-size: 1.1rem;
-        }
-
-        .form-group select,
-        .form-group input {
-            background: #222;
-            color: white;
-            border: 2px solid var(--neon-blue);
-            padding: 12px 15px;
-            border-radius: 8px;
-            width: 100%;
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.3s ease;
-            font-family: var(--font-main);
-        }
-
-        .form-group select:focus,
-        .form-group input:focus {
-            border-color: var(--neon-green);
-            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
-        }
-
-        .start-game-btn {
-            width: 100%;
-            padding: 15px;
-            font-size: 1.3rem;
-            margin-top: 30px;
-        }
-
-        .game-interface {
-            width: 100%;
-            padding: 20px;
-            display: none;
-        }
-
-        .game-interface.show {
-            display: block;
-        }
-
-        .clocks-row {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 30px;
-            justify-content: space-between;
-        }
-
-        .clock {
-            flex: 1;
-            padding: 20px;
-            background: #111;
-            border-radius: 12px;
-            text-align: center;
-            border: 3px solid #333;
-            transition: all 0.3s ease;
-        }
-
-        .clock.active-blue {
-            border-color: var(--neon-blue);
-            box-shadow: 0 0 20px var(--neon-blue);
-        }
-
-        .clock.active-red {
-            border-color: var(--neon-red);
-            box-shadow: 0 0 20px var(--neon-red);
-        }
-
-        .player-label {
-            font-size: 1rem;
-            margin-bottom: 8px;
-            opacity: 0.8;
-            font-weight: bold;
-        }
-
-        .time-display {
-            font-size: 2.5rem;
-            font-family: 'Courier New', Courier, monospace;
-            font-weight: bold;
-            letter-spacing: 2px;
-        }
-
-        .board-container {
-            margin: 30px 0;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 12px;
-            border: 2px solid #333;
-        }
-
-        .board {
-            display: grid;
-            gap: 12px;
-            margin: 0 auto;
-            max-width: 500px;
-        }
-
-        .cell {
-            background: rgba(255, 255, 255, 0.08);
-            aspect-ratio: 1/1;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 2px solid #333;
-            user-select: none;
-        }
-
-        .cell:hover {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: var(--neon-blue);
-        }
-
-        .cell.x {
-            color: var(--neon-blue);
-            text-shadow: 0 0 15px var(--neon-blue);
-        }
-
-        .cell.o {
-            color: var(--neon-red);
-            text-shadow: 0 0 15px var(--neon-red);
-        }
-
-        .cell.win-glow {
-            animation: win-pulse 0.5s infinite alternate;
-            background: rgba(0, 255, 0, 0.2);
-            border-color: var(--neon-green);
-        }
-
-        @keyframes win-pulse {
-            from { transform: scale(1); filter: brightness(1); }
-            to { transform: scale(1.05); filter: brightness(1.3); }
-        }
-
-        .status-bar {
-            text-align: center;
-            margin: 20px 0;
-            font-size: 1.3rem;
-            font-weight: bold;
-            min-height: 2em;
-            color: var(--neon-blue);
-            text-shadow: 0 0 10px var(--neon-blue);
-        }
-
-        .game-buttons {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .game-buttons button {
-            flex: 1;
-            padding: 12px;
-            font-size: 1rem;
-        }
-
-        .reset-btn {
-            background: linear-gradient(45deg, #ff6400, #ff8800);
-            box-shadow: 0 5px 15px rgba(255, 100, 0, 0.3);
-        }
-
-        .reset-btn:hover {
-            box-shadow: 0 8px 25px rgba(255, 100, 0, 0.5);
-            background: linear-gradient(45deg, #ff8800, #ff6400);
-        }
-
-        /* ===== OVERLAY (END GAME) ===== */
-        #game-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.95);
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            text-align: center;
-            padding: 20px;
-        }
-
-        #game-overlay.show {
-            display: flex;
-        }
-
-        #winner-text {
-            font-size: 3rem;
-            margin-bottom: 30px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        #insult {
-            font-size: 1.3rem;
-            font-style: italic;
-            margin-bottom: 40px;
-            max-width: 600px;
-            font-weight: bold;
-            line-height: 1.6;
-        }
-
-        #game-overlay .back-btn {
-            width: 200px;
-        }
-
         @media (max-width: 768px) {
             h1 {
                 font-size: 2rem;
-            }
-
-            .subtitle {
-                font-size: 1rem;
-            }
-
-            .game-card {
-                padding: 20px;
-            }
-
-            .game-icon {
-                font-size: 3rem;
-            }
-
-            .game-title {
-                font-size: 1.2rem;
             }
 
             .games-container {
                 grid-template-columns: 1fr;
                 gap: 20px;
             }
-
-            .setup-menu {
-                padding: 20px;
-            }
-
-            .setup-menu h2 {
-                font-size: 1.8rem;
-            }
-
-            .time-display {
-                font-size: 2rem;
-            }
-
-            #winner-text {
-                font-size: 2rem;
-            }
-
-            #insult {
-                font-size: 1rem;
-            }
         }
     </style>
 </head>
 <body>
-    <!-- ===== MAIN MENU ===== -->
     <div id="main-menu">
         <div class="header">
             <h1>🎮 Abdullah Games 🎮</h1>
@@ -633,77 +278,46 @@
         </div>
 
         <div class="games-container">
-            <!-- X-O Game Card -->
+            <!-- X-O Ultimate Card -->
             <div class="game-card">
                 <span class="game-icon">❌⭕</span>
                 <h2 class="game-title">X-O Ultimate</h2>
                 <p class="game-description">
                     لعبة إكس أو الكلاسيكية مع ساعات شطرنج وتحديات متعددة المستويات
                 </p>
-                <div class="game-stats">
-                    <div class="stat">
-                        <span class="stat-value">3</span>
-                        <span class="stat-label">مستويات</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-value">∞</span>
-                        <span class="stat-label">تحديات</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-value">2</span>
-                        <span class="stat-label">لاعب</span>
-                    </div>
-                </div>
-                <button class="play-btn xo-btn" onclick="showXOGame()">ابدأ اللعبة</button>
-                <span class="badge badge-old">⏱️ OLD</span>
+                <a href="xo-ultimate.html" class="play-btn xo-btn">ابدأ اللعبة</a>
+                <span class="badge badge-new">🆕 محسّن</span>
             </div>
 
-            <!-- Chess Game Card -->
+            <!-- Chess 1 Card -->
             <div class="game-card">
                 <span class="game-icon">♟️</span>
-                <h2 class="game-title">Chess Master</h2>
+                <h2 class="game-title">Chess 1</h2>
                 <p class="game-description">
-                    لعبة الشطرنج الكاملة مع قواعس احترافية وكشف الشيك والكش ملك
+                    لعبة الشطرنج الكلاسيكية مع قواعد احترافية وكشف الشيك
                 </p>
-                <div class="game-stats">
-                    <div class="stat">
-                        <span class="stat-value">16</span>
-                        <span class="stat-label">قطعة</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-value">♔</span>
-                        <span class="stat-label">ملك</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-value">2</span>
-                        <span class="stat-label">لاعب</span>
-                    </div>
-                </div>
-                <a href="chess-game.html" class="play-btn chess-btn">ابدأ الشطرنج</a>
-                <span class="badge badge-new">🆕 NEW</span>
+                <a href="chess-1.html" class="play-btn chess1-btn">ابدأ الشطرنج</a>
+                <span class="badge badge-new">🆕 جديدة</span>
             </div>
 
-            <!-- Racing Game Card -->
+            <!-- Chess 2 Card -->
+            <div class="game-card">
+                <span class="game-icon">♞</span>
+                <h2 class="game-title">Chess 2</h2>
+                <p class="game-description">
+                    لعبة شطرنج متقدمة مع ميزات إضافية وتحليل الحركات
+                </p>
+                <a href="chess-2.html" class="play-btn chess2-btn">ابدأ المتقدمة</a>
+                <span class="badge badge-new">🆕 متقدمة</span>
+            </div>
+
+            <!-- Racing 3D Card -->
             <div class="game-card">
                 <span class="game-icon">🏎️</span>
                 <h2 class="game-title">Racing 3D</h2>
                 <p class="game-description">
                     لعبة سباق سيارات ثلاثية الأبعاد خفيفة على المتصفح مع محرك واقعي
                 </p>
-                <div class="game-stats">
-                    <div class="stat">
-                        <span class="stat-value">2000</span>
-                        <span class="stat-label">مربع</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-value">🏁</span>
-                        <span class="stat-label">حلبة</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-value">1</span>
-                        <span class="stat-label">لاعب</span>
-                    </div>
-                </div>
                 <a href="racing-3d.html" class="play-btn racing-btn">ابدأ السباق</a>
                 <span class="badge badge-new">🆕 NEW</span>
             </div>
@@ -711,310 +325,11 @@
 
         <div class="footer">
             <p class="made-by">👨‍💻 من تطوير: Abdullah</p>
-            <p>استمتع بألعاب مثيرة وتحديات ذهنية</p>
-            <p style="margin-top: 10px; color: #555;">© 2026 Abdullah Games</p>
+            <p>استمتع بألعاب مثيرة وتحديات ذهنية مع Backend Node.js</p>
+            <p style="margin-top: 10px; color: #555;">© 2026 Abdullah Games | API Available</p>
         </div>
     </div>
 
-    <!-- ===== X-O GAME SCREEN ===== -->
-    <div id="xo-screen">
-        <div class="back-btn-container">
-            <button class="back-btn" onclick="backToMenu()">← العودة للقائمة</button>
-        </div>
-
-        <div class="xo-container">
-            <!-- Setup Menu -->
-            <div id="xo-setup" class="setup-menu">
-                <h2>⚔️ X-O Ultimate ⚔️</h2>
-                
-                <div class="form-group">
-                    <label for="board-size">اختر حجم اللوحة:</label>
-                    <select id="board-size">
-                        <option value="3">3×3 (عادي)</option>
-                        <option value="4">4×4 (متوسط)</option>
-                        <option value="5">5×5 (صعب)</option>
-                        <option value="6">6×6 (محترف)</option>
-                        <option value="7">7×7 (نينجا)</option>
-                        <option value="8">8×8 (غيرمقهور)</option>
-                        <option value="9">9×9 (إلهي)</option>
-                        <option value="10">10×10 (شيطان)</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="time-input">وقت كل لاعب (بالدقائق):</label>
-                    <input type="number" id="time-input" value="1" min="0.5" step="0.5">
-                </div>
-
-                <button class="play-btn xo-btn start-game-btn" onclick="startXOGame()">ابدأ المعركة 🎮</button>
-            </div>
-
-            <!-- Game Interface -->
-            <div id="xo-game" class="game-interface">
-                <div class="clocks-row">
-                    <div id="clock-X" class="clock">
-                        <div class="player-label" style="color: var(--neon-blue);">🔵 لاعب X</div>
-                        <div id="time-X" class="time-display" style="color: var(--neon-blue);">00:00</div>
-                    </div>
-                    <div id="clock-O" class="clock">
-                        <div class="player-label" style="color: var(--neon-red);">🔴 لاعب O</div>
-                        <div id="time-O" class="time-display" style="color: var(--neon-red);">00:00</div>
-                    </div>
-                </div>
-
-                <div class="status-bar" id="status">جاهز للبدء</div>
-
-                <div class="board-container">
-                    <div id="board" class="board"></div>
-                </div>
-
-                <div class="game-buttons">
-                    <button class="play-btn reset-btn" onclick="resetXOGame()">🔄 إعادة اللعبة</button>
-                    <button class="play-btn xo-btn" onclick="backToMenu()">← عودة</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ===== GAME OVERLAY (END GAME) ===== -->
-    <div id="game-overlay">
-        <h2 id="winner-text">فاز X!</h2>
-        <p id="insult"></p>
-        <button class="back-btn" onclick="backToMenu()">← العودة للقائمة</button>
-    </div>
-
-    <script>
-        // ===== X-O GAME LOGIC =====
-        let board = [];
-        let currentPlayer = 'X';
-        let isGameActive = false;
-        let boardSize = 3;
-        let timers = { X: 0, O: 0 };
-        let timerInterval = null;
-
-        const timeoutInsults = [
-            "انتهى الوقت يا بطيء.. اذهب للعب السلم والثعبان أفضل لك!",
-            "هل كنت نائماً؟ حتى السلحفاة أسرع منك في اتخاذ القرار!",
-            "عقلك يحتاج إلى تحديث، وقتك انتهى يا بطيء الاستيعاب.",
-            "أنت بطيء جداً، جدتي تلعب أسرع منك بمرتين!"
-        ];
-
-        const winInsults = {
-            3: [
-                "فوز عادي جداً.. جرب لفل المحترفين لو كنت تملك الجرأة.",
-                "حتى الأطفال يفوزون بهذا المستوى بسهولة!"
-            ],
-            4: [
-                "نعم، هذا أفضل... لكن المحترفون يفعلون أفضل من هذا.",
-                "لا بأس، لكن لا تفكر أنك احترافي حتى الآن."
-            ],
-            5: [
-                "الآن بدأت تلعب حقاً! لكن هناك من هم أفضل.",
-                "ممتاز! لكن المستويات الأعلى تنتظرك."
-            ],
-            6: [
-                "وااو! أنت جيد فعلاً!",
-                "مثير للإعجاب! استمر في التقدم."
-            ],
-            7: [
-                "استثنائي! لا أعتقد أن الكثيرين يصلون لهنا.",
-                "أنت بالفعل نينجا الشطرنج!"
-            ],
-            8: [
-                "مستحيل تقريباً! أنت إله الألعاب!",
-                "لا كلمات... أنت أسطورة حقيقية!"
-            ]
-        };
-
-        function showXOGame() {
-            document.getElementById('main-menu').style.display = 'none';
-            document.getElementById('xo-screen').classList.add('show');
-        }
-
-        function backToMenu() {
-            document.getElementById('xo-screen').classList.remove('show');
-            document.getElementById('game-overlay').classList.remove('show');
-            document.getElementById('xo-setup').style.display = 'block';
-            document.getElementById('xo-game').classList.remove('show');
-            document.getElementById('main-menu').style.display = 'flex';
-            isGameActive = false;
-            if (timerInterval) clearInterval(timerInterval);
-        }
-
-        function startXOGame() {
-            boardSize = parseInt(document.getElementById('board-size').value);
-            const minutes = parseFloat(document.getElementById('time-input').value);
-            timers.X = minutes * 60;
-            timers.O = minutes * 60;
-
-            document.getElementById('xo-setup').style.display = 'none';
-            document.getElementById('xo-game').classList.add('show');
-
-            initBoard();
-            updateTimerDisplay();
-            isGameActive = true;
-            currentPlayer = 'X';
-            document.getElementById('status').textContent = `🎮 دور اللاعب X`;
-            document.getElementById('clock-X').classList.add('active-blue');
-            document.getElementById('clock-O').classList.remove('active-red');
-            startTimer();
-        }
-
-        function initBoard() {
-            const boardElement = document.getElementById('board');
-            boardElement.style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;
-            boardElement.innerHTML = '';
-            board = Array(boardSize * boardSize).fill('');
-
-            for (let i = 0; i < boardSize * boardSize; i++) {
-                const cell = document.createElement('div');
-                cell.classList.add('cell');
-                cell.dataset.index = i;
-                cell.addEventListener('click', () => handleCellClick(i));
-                boardElement.appendChild(cell);
-            }
-        }
-
-        function handleCellClick(index) {
-            if (!isGameActive || board[index] !== '') return;
-
-            board[index] = currentPlayer;
-            const cells = document.querySelectorAll('.cell');
-            cells[index].textContent = currentPlayer;
-            cells[index].classList.add(currentPlayer.toLowerCase());
-
-            if (checkWin()) {
-                endGame(false);
-            } else if (board.every(cell => cell !== '')) {
-                endGame(true);
-            } else {
-                switchPlayer();
-            }
-        }
-
-        function switchPlayer() {
-            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-            const player = currentPlayer;
-            document.getElementById('status').textContent = `🎮 دور اللاعب ${player}`;
-            document.getElementById('clock-X').classList.toggle('active-blue', player === 'X');
-            document.getElementById('clock-O').classList.toggle('active-red', player === 'O');
-        }
-
-        function startTimer() {
-            if (timerInterval) clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                timers[currentPlayer]--;
-                updateTimerDisplay();
-
-                if (timers[currentPlayer] <= 0) {
-                    clearInterval(timerInterval);
-                    timeoutLoss();
-                }
-            }, 1000);
-        }
-
-        function updateTimerDisplay() {
-            ['X', 'O'].forEach(p => {
-                const min = Math.floor(timers[p] / 60);
-                const sec = timers[p] % 60;
-                const display = document.getElementById(`time-${p}`);
-                display.textContent = `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
-                
-                if (timers[p] <= 10 && timers[p] > 0) {
-                    display.classList.add('warning');
-                } else {
-                    display.classList.remove('warning');
-                }
-            });
-        }
-
-        function timeoutLoss() {
-            isGameActive = false;
-            const loser = currentPlayer;
-            document.getElementById('winner-text').textContent = `خسارة مخزية بالوقت لـ ${loser}!`;
-            document.getElementById('winner-text').style.color = 'var(--neon-red)';
-            document.getElementById('insult').textContent = timeoutInsults[Math.floor(Math.random() * timeoutInsults.length)];
-            document.getElementById('game-overlay').classList.add('show');
-        }
-
-        function checkWin() {
-            const conditions = getWinConditions();
-            return conditions.some(condition => {
-                if (condition.every(index => board[index] === currentPlayer)) {
-                    highlightWinningCells(condition);
-                    return true;
-                }
-                return false;
-            });
-        }
-
-        function getWinConditions() {
-            const conditions = [];
-            // Rows
-            for (let i = 0; i < boardSize; i++) {
-                const row = [];
-                for (let j = 0; j < boardSize; j++) row.push(i * boardSize + j);
-                conditions.push(row);
-            }
-            // Columns
-            for (let i = 0; i < boardSize; i++) {
-                const col = [];
-                for (let j = 0; j < boardSize; j++) col.push(j * boardSize + i);
-                conditions.push(col);
-            }
-            // Diagonals
-            const diag1 = [], diag2 = [];
-            for (let i = 0; i < boardSize; i++) {
-                diag1.push(i * boardSize + i);
-                diag2.push(i * boardSize + (boardSize - 1 - i));
-            }
-            conditions.push(diag1, diag2);
-            return conditions;
-        }
-
-        function highlightWinningCells(indices) {
-            const cells = document.querySelectorAll('.cell');
-            indices.forEach(i => cells[i].classList.add('win-glow'));
-        }
-
-        function endGame(draw) {
-            isGameActive = false;
-            if (timerInterval) clearInterval(timerInterval);
-            const overlay = document.getElementById('game-overlay');
-            const winText = document.getElementById('winner-text');
-            const insult = document.getElementById('insult');
-
-            if (draw) {
-                winText.textContent = "تعادل ممل!";
-                insult.textContent = "لا يوجد فائز هنا، مجرد مضيعة أخرى للوقت البشري.";
-                winText.style.color = '#aaa';
-            } else {
-                winText.textContent = `🎉 الفوز للاعب ${currentPlayer}! 🎉`;
-                winText.style.color = currentPlayer === 'X' ? 'var(--neon-blue)' : 'var(--neon-red)';
-                
-                const insults = winInsults[boardSize] || winInsults[3];
-                insult.textContent = insults[Math.floor(Math.random() * insults.length)];
-            }
-            overlay.classList.add('show');
-        }
-
-        function resetXOGame() {
-            backToMenu();
-        }
-
-        // Warning animation
-        const style = document.createElement('style');
-        style.innerHTML = `
-            @keyframes warningBlink {
-                0%, 100% { opacity: 1; }
-                50% { opacity: 0.3; }
-            }
-            .warning {
-                animation: warningBlink 0.5s infinite !important;
-                color: #ff0000 !important;
-            }
-        `;
-        document.head.appendChild(style);
-    </script>
+    <script src="api-client.js"></script>
 </body>
 </html>
